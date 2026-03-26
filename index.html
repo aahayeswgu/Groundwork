@@ -840,7 +840,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
     </div>
     <div class="pin-list" id="pin-list">
       <div class="empty-state">
-        <div class="empty-state-icon">📍</div>
+        <div class="empty-state-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
         <div class="empty-state-text">No pins yet.<br>Click the + button on the map to start dropping pins.</div>
         <div class="empty-state-sub">Even the boss takes a day off sometimes.</div>
       </div>
@@ -1133,8 +1133,8 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
           <div class="field-label" style="margin-bottom:4px;">Start From</div>
           <div style="display:flex;gap:6px;margin-bottom:6px;">
             <button class="btn btn-sm planner-start-btn active" id="pstart-home" onclick="setPlannerStart('home')" style="flex:1;font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--orange-dim);color:var(--orange);">🏠 Home Base</button>
-            <button class="btn btn-sm planner-start-btn" id="pstart-gps" onclick="setPlannerStart('gps')" style="flex:1;font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);">📍 My Location</button>
-            <button class="btn btn-sm planner-start-btn" id="pstart-custom" onclick="setPlannerStart('custom')" style="flex:1;font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);">✏️ Custom</button>
+            <button class="btn btn-sm planner-start-btn" id="pstart-gps" onclick="setPlannerStart('gps')" style="flex:1;font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> My Location</button>
+            <button class="btn btn-sm planner-start-btn" id="pstart-custom" onclick="setPlannerStart('custom')" style="flex:1;font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);">&#9998; Custom</button>
           </div>
           <input class="field-input" id="planner-start-input" placeholder="Enter starting address..." style="display:none;font-size:12px;padding:8px;" autocomplete="off">
         </div>
@@ -1306,7 +1306,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
               Snap a Card
             </button>
-            <input type="file" id="card-file-input" accept="image/*" capture="environment" style="display:none;" onchange="onCardFileSelected(event)">
+            <input type="file" id="card-file-input" accept="image/*" style="display:none;" onchange="onCardFileSelected(event)">
           </div>
           
           <!-- Search & Sort Bar -->
@@ -1375,11 +1375,24 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       <button class="icon-btn" onclick="closeEmailCompose()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="modal-body" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-      <div style="margin-bottom:12px;flex-shrink:0;">
-        <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:4px;">To</label>
+      <div style="margin-bottom:8px;flex-shrink:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">To</label>
+          <button id="email-ccbcc-toggle" onclick="toggleCcBcc()" style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0;font-family:inherit;text-decoration:underline;">Cc/Bcc</button>
+        </div>
         <input class="field-input" id="email-to" placeholder="recipient@email.com" type="email" style="font-size:14px;">
       </div>
-      <div style="margin-bottom:12px;flex-shrink:0;">
+      <div id="email-ccbcc-fields" style="display:none;flex-shrink:0;">
+        <div style="margin-bottom:8px;">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:4px;">Cc</label>
+          <input class="field-input" id="email-cc" placeholder="cc@email.com" type="email" style="font-size:14px;">
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:4px;">Bcc</label>
+          <input class="field-input" id="email-bcc" placeholder="bcc@email.com" type="email" style="font-size:14px;">
+        </div>
+      </div>
+      <div style="margin-bottom:8px;flex-shrink:0;">
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:4px;">Subject</label>
         <input class="field-input" id="email-subject" placeholder="Subject line" style="font-size:14px;">
       </div>
@@ -1387,8 +1400,13 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
         <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:4px;flex-shrink:0;">Message</label>
         <textarea class="field-input" id="email-body" placeholder="Write your message..." style="font-size:14px;line-height:1.6;resize:none;flex:1;min-height:100px;font-family:'DM Sans',sans-serif;"></textarea>
       </div>
+      <div id="email-attachments-list" style="display:none;flex-shrink:0;margin-top:8px;max-height:100px;overflow-y:auto;"></div>
+      <input type="file" id="email-attach-input" multiple style="display:none;" onchange="onEmailAttach(event)">
     </div>
     <div class="modal-footer" style="display:flex;gap:8px;flex-shrink:0;">
+      <button class="btn" onclick="document.getElementById('email-attach-input').click()" style="padding:8px 12px;background:var(--bg-input);color:var(--text-secondary);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;" title="Attach files">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+      </button>
       <button class="btn btn-primary" onclick="sendViaGmailAPI()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         Send
@@ -1454,7 +1472,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
         <input class="field-input" id="profile-phone-num" placeholder="(555) 123-4567" type="tel">
       </div>
       <div class="field-group" style="border-top:1px solid var(--border); padding-top:16px; margin-top:8px;">
-        <div class="field-label">🏠 Home Base Address</div>
+        <div class="field-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Home Base Address</div>
         <input class="field-input" id="profile-homebase" placeholder="Starting address for daily routes">
         <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">Auto-fills as start/end when you plan a route.</div>
       </div>
@@ -1475,7 +1493,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
     <div class="modal-body" style="max-height:68vh;">
       <!-- Mode tabs -->
       <div style="display:flex;gap:0;margin-bottom:12px;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;">
-        <button id="import-tab-paste" onclick="switchImportTab('paste')" style="flex:1;padding:9px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--orange);color:#fff;">📋 Paste from Google Maps</button>
+        <button id="import-tab-paste" onclick="switchImportTab('paste')" style="flex:1;padding:9px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--orange);color:#fff;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Paste from Google Maps</button>
         <button id="import-tab-quick" onclick="switchImportTab('quick')" style="flex:1;padding:9px;font-size:12px;font-weight:600;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:var(--bg-input);color:var(--text-secondary);">⚡ Type Stops</button>
       </div>
 
@@ -1491,7 +1509,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
           ⚠️ This filter isn't perfect — review the extracted list before confirming. Remove anything that isn't a real business name.
         </div>
         <textarea class="field-input" id="import-paste-input" rows="6" placeholder="Paste the entire Google Maps page here...&#10;&#10;Business names, addresses, ratings, notes — paste it ALL. The filter handles the rest." style="font-size:13px;resize:vertical;min-height:100px;line-height:1.5;margin-bottom:6px;"></textarea>
-        <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="parseBulkPaste()">🔍 Extract Stops</button>
+        <button class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="parseBulkPaste()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Extract Stops</button>
         <div id="import-paste-results" style="display:none;margin-bottom:8px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <span id="import-paste-count" style="font-size:12px;font-weight:700;color:var(--text-primary);"></span>
@@ -1541,7 +1559,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
     <div class="modal-body" style="padding:12px 24px;">
       <!-- Import Route disabled for now - needs rebuild
       <button style="width:100%;padding:14px 16px;border:none;background:none;cursor:pointer;display:flex;align-items:center;gap:12px;border-radius:8px;transition:background 0.15s;color:var(--text-primary);font-size:14px;font-weight:500;" onmouseover="this.style.background='var(--orange-dim)'" onmouseout="this.style.background=''" onclick="document.getElementById('settings-modal').classList.remove('active');openImportRoute()">
-        <span style="font-size:18px;">📥</span> Import Google Maps Route
+        <span style="font-size:18px;display:flex;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg></span> Import Google Maps Route
       </button>
       -->
       <button style="width:100%;padding:14px 16px;border:none;background:none;cursor:pointer;display:flex;align-items:center;gap:12px;border-radius:8px;transition:background 0.15s;color:var(--text-primary);font-size:14px;font-weight:500;" onmouseover="this.style.background='var(--orange-dim)'" onmouseout="this.style.background=''" onclick="document.getElementById('settings-modal').classList.remove('active');openStatusModal()">
@@ -1552,12 +1570,12 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       </button>
       <!-- PWA Install -->
       <button id="pwa-install-btn" style="display:none;width:100%;padding:14px 16px;border:none;background:none;cursor:pointer;align-items:center;gap:12px;border-radius:8px;transition:background 0.15s;color:var(--text-primary);font-size:14px;font-weight:500;" onmouseover="this.style.background='var(--orange-dim)'" onmouseout="this.style.background=''" onclick="triggerPWAInstall()">
-        <span style="font-size:18px;">📲</span> Install App on Device
+        <span style="font-size:18px;display:flex;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span> Install App on Device
       </button>
       <div style="border-top:1px solid var(--border);margin:6px 0;"></div>
       <div style="padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
         <div>
-          <div style="font-size:14px;font-weight:500;color:var(--text-primary);">🧭 Route Optimization</div>
+          <div style="font-size:14px;font-weight:500;color:var(--text-primary);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;display:inline;"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg> Route Optimization</div>
           <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Reorder stops for shortest drive time. Turn off if you have time-specific meetings.</div>
         </div>
         <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0;margin-left:12px;cursor:pointer;">
@@ -1581,7 +1599,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       </button>
       <div style="border-top:1px solid var(--border);margin:6px 0;"></div>
       <button style="width:100%;padding:14px 16px;border:none;background:none;cursor:pointer;display:flex;align-items:center;gap:12px;border-radius:8px;transition:background 0.15s;color:#EF4444;font-size:14px;font-weight:500;" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background=''" onclick="deleteAllPins()">
-        <span style="font-size:18px;">🗑️</span> Delete All Pins
+        <span style="font-size:18px;display:flex;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></span> Delete All Pins
       </button>
       <div style="border-top:1px solid var(--border);margin:6px 0;"></div>
       <button style="width:100%;padding:14px 16px;border:none;background:none;cursor:pointer;display:flex;align-items:center;gap:12px;border-radius:8px;transition:background 0.15s;color:var(--text-muted);font-size:14px;font-weight:500;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background=''" onclick="document.getElementById('settings-modal').classList.remove('active');handleLogout()">
@@ -2233,6 +2251,11 @@ function openEmailCompose(prefillTo, prefillSubject, prefillBody, pinId) {
   document.getElementById('email-to').value = prefillTo || '';
   document.getElementById('email-subject').value = prefillSubject || '';
   document.getElementById('email-body').value = prefillBody || '';
+  document.getElementById('email-cc').value = '';
+  document.getElementById('email-bcc').value = '';
+  document.getElementById('email-ccbcc-fields').style.display = 'none';
+  emailAttachments = [];
+  renderEmailAttachments();
   modal.dataset.pinId = pinId || '';
   modal.style.display = '';
   // Reset position to bottom-right
@@ -2247,6 +2270,7 @@ function openEmailCompose(prefillTo, prefillSubject, prefillBody, pinId) {
 
 function closeEmailCompose() {
   document.getElementById('email-compose-modal').style.display = 'none';
+  emailAttachments = [];
 }
 
 // Drag compose modal by header
@@ -3096,13 +3120,13 @@ function showPinInfoWindow(id) {
         <div style="color:#1A1A1A;font-size:15px;font-weight:700;line-height:1.3;padding-right:16px;">${escHtml(pin.title)}</div>
         <div style="display:inline-flex;align-items:center;gap:4px;margin-top:4px;padding:3px 8px;border-radius:10px;background:${status.color}22;"><span style="width:8px;height:8px;border-radius:50%;background:${status.color};"></span><span style="font-size:11px;font-weight:600;color:${status.color};">${escHtml(status.label)}</span></div>
         ${pin.address ? `<div style="font-size:12px;color:#777;margin-top:6px;line-height:1.3;">${escHtml(pin.address)}</div>` : ''}
-        ${pin.contact ? `<div style="font-size:12px;color:#555;margin-top:4px;">👤 ${escHtml(pin.contact)}</div>` : ''}
+        ${pin.contact ? `<div style="font-size:12px;color:#555;margin-top:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="vertical-align:-1px;"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ${escHtml(pin.contact)}</div>` : ''}
         ${pin.phone ? `<div style="font-size:12px;color:#555;margin-top:2px;">📞 ${escHtml(pin.phone)}</div>` : ''}
         ${pin.followup ? `<div style="font-size:11px;color:#D4712A;margin-top:4px;font-weight:600;">Follow-up: ${pin.followup}</div>` : ''}
         ${notesCount ? `<div style="font-size:11px;color:#888;margin-top:4px;">${notesCount} note${notesCount!==1?'s':''}</div>` : ''}
         <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
           <button onclick="togglePlanFromBubble('${pin.id}')" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:7px 10px;border-radius:6px;border:none;background:${planBtnColor};color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:background 0.15s;" onmouseover="this.style.background='${planBtnHover}'" onmouseout="this.style.background='${planBtnColor}'">${planBtnText}</button>
-          <button onclick="infoWindow.close();currentInfoWindowPinId=null;openEditPin('${pin.id}')" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:7px 10px;border-radius:6px;border:1.5px solid #D4712A;background:transparent;color:#D4712A;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#D4712A';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#D4712A'">✏️ Edit</button>
+          <button onclick="infoWindow.close();currentInfoWindowPinId=null;openEditPin('${pin.id}')" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:7px 10px;border-radius:6px;border:1.5px solid #D4712A;background:transparent;color:#D4712A;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#D4712A';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#D4712A'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
         </div>
         <div style="margin-top:6px;text-align:center;">
           <a href="${gmapsLink}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#4285F4;font-weight:600;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
@@ -3410,7 +3434,7 @@ function renderPinList() {
   if (activeStatusFilter) filtered = filtered.filter(p => p.status === activeStatusFilter);
   document.getElementById('pin-count-text').textContent = `${filtered.length} pin${filtered.length!==1?'s':''}`;
   if (!filtered.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📍</div><div class="empty-state-text">${query || activeStatusFilter ? 'No pins match your filter.' : 'No pins yet.<br>Click the + button on the map to start dropping pins.'}</div>${!query && !activeStatusFilter ? '<div class="empty-state-sub">Even the boss takes a day off sometimes.</div>' : ''}</div>`;
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div><div class="empty-state-text">${query || activeStatusFilter ? 'No pins match your filter.' : 'No pins yet.<br>Click the + button on the map to start dropping pins.'}</div>${!query && !activeStatusFilter ? '<div class="empty-state-sub">Even the boss takes a day off sometimes.</div>' : ''}</div>`;
     return;
   }
   let html = '';
@@ -4300,25 +4324,63 @@ async function gmailReadEmail(msgId) {
   const headers = {};
   (msg.payload?.headers || []).forEach(h => { headers[h.name.toLowerCase()] = h.value; });
 
-  // Extract body
-  let body = '';
-  function extractBody(part) {
+  // Extract body (HTML and plain text)
+  let bodyHtml = '';
+  let bodyPlain = '';
+  let attachments = [];
+  function extractParts(part) {
     if (part.mimeType === 'text/html' && part.body?.data) {
-      body = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-    } else if (part.mimeType === 'text/plain' && part.body?.data && !body) {
-      const text = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-      body = '<pre style="white-space:pre-wrap;font-family:inherit;">' + escHtml(text) + '</pre>';
+      bodyHtml = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+    } else if (part.mimeType === 'text/plain' && part.body?.data) {
+      bodyPlain = atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
     }
-    if (part.parts) part.parts.forEach(extractBody);
+    // Collect attachments
+    if (part.filename && part.filename.length > 0 && part.body) {
+      attachments.push({
+        filename: part.filename,
+        mimeType: part.mimeType,
+        size: part.body.size || 0,
+        attachmentId: part.body.attachmentId || null,
+      });
+    }
+    if (part.parts) part.parts.forEach(extractParts);
   }
-  extractBody(msg.payload);
+  extractParts(msg.payload);
+
+  let body = bodyHtml || (bodyPlain ? '<pre style="white-space:pre-wrap;font-family:inherit;">' + escHtml(bodyPlain) + '</pre>' : '');
+
+  // Cache full body text on message for reply/forward
+  const cachedMsg = gmailMessages.find(m => m.id === msgId);
+  if (cachedMsg) {
+    cachedMsg._fullBodyPlain = bodyPlain;
+    cachedMsg._fullBodyHtml = bodyHtml;
+    cachedMsg._attachments = attachments;
+  }
 
   const fromName = (headers.from || '').replace(/<.*>/, '').trim();
   const fromEmail = ((headers.from || '').match(/<(.+?)>/) || [])[1] || headers.from || '';
   const starred = (msg.labelIds || []).includes('STARRED');
   
-  // Check if body is HTML (contains HTML tags beyond just the pre we add for plain text)
   const isHtml = body && !body.startsWith('<pre') && /<[a-z][\s\S]*>/i.test(body);
+
+  // Build attachment HTML
+  let attachHtml = '';
+  if (attachments.length > 0) {
+    attachHtml = '<div style="padding:12px 24px;border-top:1px solid var(--border);flex-shrink:0;">' +
+      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:8px;">Attachments (' + attachments.length + ')</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">' +
+      attachments.map((a, i) => {
+        const sizeStr = a.size > 1048576 ? (a.size/1048576).toFixed(1)+'MB' : a.size > 1024 ? Math.round(a.size/1024)+'KB' : a.size+'B';
+        return `<div onclick="gmailDownloadAttachment('${msgId}','${a.attachmentId}','${escHtml(a.filename)}')" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;max-width:220px;" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:12px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(a.filename)}</div>
+            <div style="font-size:10px;color:var(--text-muted);">${sizeStr}</div>
+          </div>
+        </div>`;
+      }).join('') +
+      '</div></div>';
+  }
 
   const reader = document.getElementById('email-reader');
   reader.innerHTML = `
@@ -4326,7 +4388,7 @@ async function gmailReadEmail(msgId) {
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
         <div style="font-size:18px;font-weight:700;color:var(--text-primary);line-height:1.3;flex:1;min-width:0;">${escHtml(headers.subject || '(no subject)')}</div>
         <div style="display:flex;gap:6px;flex-shrink:0;">
-          <button onclick="gmailToggleStar('${msgId}')" title="Star" style="background:none;border:none;cursor:pointer;font-size:18px;">${starred ? '⭐' : '☆'}</button>
+          <button onclick="gmailToggleStar('${msgId}')" title="Star" style="background:none;border:none;cursor:pointer;font-size:18px;">${starred ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="#F59E0B" stroke="#F59E0B" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'}</button>
           <button onclick="gmailTrash('${msgId}')" title="Delete" style="background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-muted)'">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
           </button>
@@ -4340,6 +4402,7 @@ async function gmailReadEmail(msgId) {
         </div>
       </div>
     </div>
+    ${attachHtml}
     <div id="email-body-container" style="flex:1;overflow:auto;min-height:0;"></div>
     <div style="padding:12px 24px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;background:var(--bg-primary);">
       <button onclick="gmailReply('${msgId}')" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-primary);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-primary)'">
@@ -4356,13 +4419,10 @@ async function gmailReadEmail(msgId) {
   // Render email body - use iframe for HTML emails
   const bodyContainer = document.getElementById('email-body-container');
   if (isHtml && body) {
-    // HTML email - render in sandboxed iframe for isolation
     const iframe = document.createElement('iframe');
     iframe.style.cssText = 'width:100%;height:100%;border:none;background:#fff;';
-    iframe.sandbox = 'allow-same-origin'; // No scripts, forms, popups, etc.
+    iframe.sandbox = 'allow-same-origin';
     bodyContainer.appendChild(iframe);
-    
-    // Inject HTML with responsive wrapper
     const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
     iframeDoc.open();
     iframeDoc.write(`
@@ -4384,7 +4444,6 @@ async function gmailReadEmail(msgId) {
     `);
     iframeDoc.close();
   } else {
-    // Plain text or simple content
     bodyContainer.innerHTML = `<div style="padding:20px 24px;font-size:14px;line-height:1.7;color:var(--text-primary);overflow-wrap:break-word;">${body || '<em style="color:var(--text-muted)">No content</em>'}</div>`;
   }
   
@@ -4392,19 +4451,42 @@ async function gmailReadEmail(msgId) {
   document.getElementById('email-reader-empty').style.display = 'none';
 }
 
+async function gmailDownloadAttachment(msgId, attachmentId, filename) {
+  if (!attachmentId) { toast('Attachment not available.'); return; }
+  toast('Downloading ' + filename + '...');
+  const data = await gmailApiFetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${msgId}/attachments/${attachmentId}`);
+  if (!data || !data.data) { toast('Download failed.'); return; }
+  // Convert URL-safe base64 to regular base64
+  const b64 = data.data.replace(/-/g, '+').replace(/_/g, '/');
+  const byteChars = atob(b64);
+  const byteNumbers = new Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) byteNumbers[i] = byteChars.charCodeAt(i);
+  const byteArray = new Uint8Array(byteNumbers);
+  const blob = new Blob([byteArray]);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+  toast(filename + ' downloaded.');
+}
+
 function gmailReply(msgId) {
   const msg = gmailMessages.find(m => m.id === msgId);
   if (!msg) return;
   const fromEmail = (msg.from.match(/<(.+?)>/) || [])[1] || msg.from;
   const subject = msg.subject.startsWith('Re:') ? msg.subject : 'Re: ' + msg.subject;
-  openEmailCompose(fromEmail, subject, '\n\n--- Original message ---\n' + msg.snippet, '');
+  const originalBody = msg._fullBodyPlain || msg.snippet || '';
+  const quotedBody = '\n\n--- Original message ---\nFrom: ' + msg.from + '\nDate: ' + msg.date + '\n\n' + originalBody;
+  openEmailCompose(fromEmail, subject, quotedBody, '');
 }
 
 function gmailForward(msgId) {
   const msg = gmailMessages.find(m => m.id === msgId);
   if (!msg) return;
   const subject = msg.subject.startsWith('Fwd:') ? msg.subject : 'Fwd: ' + msg.subject;
-  openEmailCompose('', subject, '\n\n--- Forwarded message ---\nFrom: ' + msg.from + '\nSubject: ' + msg.subject + '\n\n' + msg.snippet, '');
+  const originalBody = msg._fullBodyPlain || msg.snippet || '';
+  const fwdBody = '\n\n--- Forwarded message ---\nFrom: ' + msg.from + '\nDate: ' + msg.date + '\nSubject: ' + msg.subject + '\n\n' + originalBody;
+  openEmailCompose('', subject, fwdBody, '');
 }
 
 async function gmailToggleStar(msgId) {
@@ -4434,11 +4516,59 @@ function gmailCompose() {
   openEmailCompose('', '', '', '');
 }
 
+// CC/BCC toggle
+function toggleCcBcc() {
+  const fields = document.getElementById('email-ccbcc-fields');
+  fields.style.display = fields.style.display === 'none' ? '' : 'none';
+}
+
+// Attachment handling
+let emailAttachments = []; // Array of { file, name, size, dataUrl }
+
+function onEmailAttach(event) {
+  const files = event.target.files;
+  if (!files || !files.length) return;
+  for (const file of files) {
+    if (file.size > 25 * 1024 * 1024) { toast(file.name + ' exceeds 25MB limit.'); continue; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      emailAttachments.push({ file, name: file.name, size: file.size, type: file.type, dataUrl: e.target.result });
+      renderEmailAttachments();
+    };
+    reader.readAsDataURL(file);
+  }
+  event.target.value = ''; // Reset input so same file can be re-selected
+}
+
+function renderEmailAttachments() {
+  const container = document.getElementById('email-attachments-list');
+  if (!emailAttachments.length) { container.style.display = 'none'; container.innerHTML = ''; return; }
+  container.style.display = '';
+  container.innerHTML = emailAttachments.map((a, i) => {
+    const sizeStr = a.size > 1048576 ? (a.size/1048576).toFixed(1)+'MB' : Math.round(a.size/1024)+'KB';
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;margin-bottom:4px;background:var(--bg-secondary);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+      <span style="flex:1;font-size:12px;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(a.name)}</span>
+      <span style="font-size:10px;color:var(--text-muted);flex-shrink:0;">${sizeStr}</span>
+      <button onclick="removeEmailAttachment(${i})" style="background:none;border:none;cursor:pointer;color:var(--text-muted);display:flex;padding:2px;" title="Remove">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function removeEmailAttachment(index) {
+  emailAttachments.splice(index, 1);
+  renderEmailAttachments();
+}
+
 // Override sendViaGmail to also send via API if connected
 const _origSendViaGmail = typeof sendViaGmail === 'function' ? sendViaGmail : null;
 
 function sendViaGmailAPI() {
   const to = document.getElementById('email-to').value.trim();
+  const cc = document.getElementById('email-cc').value.trim();
+  const bcc = document.getElementById('email-bcc').value.trim();
   const subject = document.getElementById('email-subject').value.trim();
   const body = document.getElementById('email-body').value;
   const pinId = document.getElementById('email-compose-modal').dataset.pinId;
@@ -4446,17 +4576,43 @@ function sendViaGmailAPI() {
   if (!to) { toast('Enter a recipient email.'); return; }
 
   if (gmailToken) {
-    // Send directly via Gmail API
-    const email = [
-      'Content-Type: text/plain; charset="UTF-8"',
+    // Build MIME message
+    const boundary = 'gw_boundary_' + Date.now();
+    let mimeHeaders = [
       'MIME-Version: 1.0',
       `To: ${to}`,
-      `Subject: ${subject}`,
-      '',
-      body
-    ].join('\r\n');
-    const encoded = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    ];
+    if (cc) mimeHeaders.push(`Cc: ${cc}`);
+    if (bcc) mimeHeaders.push(`Bcc: ${bcc}`);
+    mimeHeaders.push(`Subject: ${subject}`);
 
+    if (emailAttachments.length > 0) {
+      // Multipart message with attachments
+      mimeHeaders.push(`Content-Type: multipart/mixed; boundary="${boundary}"`);
+      let mimeBody = mimeHeaders.join('\r\n') + '\r\n\r\n';
+      // Text part
+      mimeBody += `--${boundary}\r\n`;
+      mimeBody += 'Content-Type: text/plain; charset="UTF-8"\r\n\r\n';
+      mimeBody += body + '\r\n';
+      // Attachment parts
+      for (const att of emailAttachments) {
+        const b64Data = att.dataUrl.split(',')[1] || '';
+        mimeBody += `--${boundary}\r\n`;
+        mimeBody += `Content-Type: ${att.type || 'application/octet-stream'}; name="${att.name}"\r\n`;
+        mimeBody += `Content-Disposition: attachment; filename="${att.name}"\r\n`;
+        mimeBody += 'Content-Transfer-Encoding: base64\r\n\r\n';
+        mimeBody += b64Data + '\r\n';
+      }
+      mimeBody += `--${boundary}--`;
+      var encoded = btoa(unescape(encodeURIComponent(mimeBody))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    } else {
+      // Simple text message
+      mimeHeaders.push('Content-Type: text/plain; charset="UTF-8"');
+      const email = mimeHeaders.join('\r\n') + '\r\n\r\n' + body;
+      var encoded = btoa(unescape(encodeURIComponent(email))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+
+    toast('Sending...');
     gmailApiFetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
       method: 'POST',
       body: JSON.stringify({ raw: encoded }),
@@ -4468,7 +4624,6 @@ function sendViaGmailAPI() {
         if (gmailCurrentFolder === 'SENT') gmailRefresh();
       } else {
         toast('Send failed. Opening Gmail instead...');
-        // Fallback to Gmail web
         const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         window.open(gmailUrl, '_blank');
         closeEmailCompose();
@@ -6121,7 +6276,7 @@ function buildDiscoverInfoHtml(b, index) {
 
   const pinBtnHtml = index !== undefined ? (alreadySaved
     ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#22C55E;font-weight:600;">✓ Pinned</span>`
-    : `<button onclick="quickSavePinFromBubble(${index})" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:6px;border:none;background:#D4712A;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:background 0.15s;font-family:DM Sans,sans-serif;" onmouseover="this.style.background='#E07F35'" onmouseout="this.style.background='#D4712A'">📌 Save as Pin</button>`
+    : `<button onclick="quickSavePinFromBubble(${index})" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:6px;border:none;background:#D4712A;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:background 0.15s;font-family:DM Sans,sans-serif;" onmouseover="this.style.background='#E07F35'" onmouseout="this.style.background='#D4712A'"><svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' style='vertical-align:-1px;'><path d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z'/><circle cx='12' cy='10' r='3'/></svg> Save as Pin</button>`
   ) : '';
 
   const planBtnHtml = index !== undefined ? (inPlan
@@ -6164,7 +6319,7 @@ function renderDiscoverResults() {
     return `<div class="disc-item ${discoverSelected.has(i)?'selected':''}" data-disc-index="${i}" onmouseenter="hoverDiscoverItem(${i})" onmouseleave="unhoverDiscoverItem(${i})">
       <div class="disc-checkbox" onclick="event.stopPropagation();toggleDiscoverSelect(${i})"></div>
       <div class="disc-item-info" onclick="toggleDiscoverSelect(${i});focusDiscoverItem(${i})" style="cursor:pointer;"><div class="disc-item-name">${escHtml(b.name)}</div><div class="disc-item-type">${escHtml(b.type)}${b.rating ? ` · <span style="color:#F59E0B;">★</span> ${b.rating}` : ''}</div><div class="disc-item-addr">${escHtml(b.address)}</div></div>
-      <button class="disc-pin-btn ${alreadySaved?'saved':''}" onclick="event.stopPropagation();quickSavePin(${i})" title="${alreadySaved?'Already saved':'Save as pin'}">${alreadySaved ? '✓' : '📌'}</button>
+      <button class="disc-pin-btn ${alreadySaved?'saved':''}" onclick="event.stopPropagation();quickSavePin(${i})" title="${alreadySaved?'Already saved':'Save as pin'}">${alreadySaved ? '✓' : '⊕'}</button>
     </div>`;
   }).join('');
   updateDiscoverCount();
@@ -6279,7 +6434,7 @@ function quickSavePin(index) {
   if (pins.find(p => p.title.toLowerCase() === b.name.toLowerCase() || (Math.abs(p.lat-b.lat)<0.001 && Math.abs(p.lng-b.lng)<0.001))) { toast(b.name + ' is already in your pins.'); return; }
   pins.push({ id: 'pin_' + Date.now() + '_' + index, title: b.name, address: b.address || '', lat: b.lat, lng: b.lng, status: (statuses[0]||{}).id || 'prospect', contact: '', phone: b.phone || '', followup: '', notes: b.type ? [{ text: 'Discovered via Groundwork — ' + b.type, date: new Date().toISOString() }] : [], created: new Date().toISOString() });
   savePins(); addMarkerToMap(pins[pins.length-1]); renderPinList(); renderDiscoverResults();
-  toast('📌 ' + b.name + ' saved as pin.');
+  toast(b.name + ' saved as pin.');
   
 }
 
@@ -6468,6 +6623,12 @@ function shareRouteToGoogleMaps() {
 }
 
 async function startNavigation(routeInfo, destLabel) {
+  // Desktop GPS warning
+  const isMobileNav = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (!isMobileNav && !localStorage.getItem('gw_desktop_nav_warned')) {
+    toast('Desktop GPS is less accurate than mobile. For best navigation, use your phone.');
+    localStorage.setItem('gw_desktop_nav_warned', '1');
+  }
   navActive = true; navDestLabel = destLabel; navCurrentStep = 0;
   document.getElementById('nav-mode').classList.add('active');
   // Close all panels that could overlap
@@ -6676,7 +6837,7 @@ function showKeepRoutePrompt() {
     <span style="color: var(--text-primary); font-size: 14px; font-weight: 600; text-align: center;">Keep this route?</span>
     <div style="display: flex; gap: 8px; justify-content: center;">
       <button onclick="keepRoute()" style="background: var(--orange); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;">✓ Keep</button>
-      <button onclick="editKeptRoute()" style="background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">✏️ Edit</button>
+      <button onclick="editKeptRoute()" style="background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
       <button onclick="discardRoute()" style="background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border); padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer;">✗ Discard</button>
     </div>
   `;
@@ -7919,37 +8080,37 @@ function reverseGeocodeForName(lat, lng) {
 // ═══════════════════════════════════════
 const TUTORIAL_SLIDES = [
   {
-    icon: '📍',
+    icon: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>',
     title: 'Drop Pins on Job Sites',
     desc: 'Click the <strong>+</strong> button on the map, then tap anywhere to drop a pin. Track site names, contacts, statuses, notes, and follow-up dates — all in one place.',
     img: 'pin'
   },
   {
-    icon: '🗓️',
+    icon: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
     title: 'Plan Your Day',
     desc: 'Switch to the <strong>Planner</strong> tab to build today\'s stop list. Add pins to your plan, choose your starting point (home base, GPS, or custom), then hit <strong>Route It</strong> for turn-by-turn road directions.',
     img: 'planner'
   },
   {
-    icon: '🔍',
+    icon: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
     title: 'Discover New Businesses',
     desc: 'Click the <strong>magnifying glass +</strong> button on the map to open Discover. Draw a rectangle on the map and Groundwork will find construction companies, contractors, electricians, and more in that area using Google Places.',
     img: 'discover'
   },
   {
-    icon: '🧭',
+    icon: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>',
     title: 'Navigate with Turn-by-Turn',
     desc: 'After routing, hit <strong>Start Driving</strong> for GPS-guided navigation with voice turn-by-turn directions. Your route, ETA, and remaining distance update in real time.',
     img: 'nav'
   },
   {
-    icon: '👤',
+    icon: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
     title: 'Set Up Your Profile',
     desc: 'Tap your profile in the sidebar to set your name, territory, and <strong>home base address</strong>. Your home base auto-fills as the start/end point for all routes.',
     img: 'profile'
   },
   {
-    icon: '📥',
+    icon: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg>',
     title: 'Import Routes from Google Maps',
     desc: 'Click the <strong>import button</strong> (↓) on the map. Your team can share a Google Maps list — just open the link, copy the place names from the sidebar, and paste them into Groundwork one per line. It will find each location, create pins, and build the route automatically.',
     img: 'profile'
@@ -8289,10 +8450,10 @@ function showIOSInstallGuide() {
   overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;padding:20px;animation:modalIn 0.3s ease;';
   overlay.innerHTML = `
     <div style="background:var(--bg-card);border-radius:16px;padding:28px 24px;max-width:340px;width:100%;box-shadow:var(--shadow-lg);text-align:center;">
-      <div style="font-size:40px;margin-bottom:12px;">📲</div>
+      <div style="font-size:40px;margin-bottom:12px;display:flex;justify-content:center;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/><path d="M8 10l4-4 4 4"/><line x1="12" y1="6" x2="12" y2="14"/></svg></div>
       <div style="font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">Install Groundwork</div>
       <div style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;">
-        1. Tap the <strong>Share</strong> button <span style="font-size:18px;">⬆️</span> in Safari<br>
+        1. Tap the <strong>Share</strong> button <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-3px;"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> in Safari<br>
         2. Scroll down and tap <strong>"Add to Home Screen"</strong><br>
         3. Tap <strong>"Add"</strong> in the top right
       </div>
