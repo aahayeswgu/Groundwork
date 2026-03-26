@@ -108,7 +108,7 @@ input, textarea, select { font-family:inherit; font-size:14px; }
 .sidebar-toggle:hover { color:var(--orange); background:var(--orange-dim); }
 .sidebar-toggle svg { transition:transform 0.3s; }
 #sidebar.collapsed .sidebar-toggle svg { transform:rotate(180deg); }
-#map-area { flex:1; position:relative; height:100vh; }
+#map-area { flex:1; position:relative; height:100vh; overflow:hidden; }
 #map { width:100%; height:100%; z-index:1; }
 
 /* ─── HEADER ─── */
@@ -665,6 +665,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   display:none; position:absolute; top:60px; left:50%; transform:translateX(-50%); z-index:17;
   background:var(--orange); color:#fff; padding:10px 20px; border-radius:20px;
   font-size:13px; font-weight:600; box-shadow:var(--shadow-lg); white-space:nowrap;
+  pointer-events:none; transition:opacity 0.3s;
 }
 .discover-hint.active { display:block; }
 
@@ -930,8 +931,8 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
     <div class="discover-panel" id="discover-panel">
       <div class="directions-header">
         <span style="font-size:15px; font-weight:700; color:var(--text-primary);">Discover Businesses</span>
-        <button class="icon-btn" onclick="closeDiscover()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <button class="icon-btn" onclick="closeDiscover()" style="min-width:36px;min-height:36px;display:flex;align-items:center;justify-content:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <div class="discover-body">
@@ -1551,7 +1552,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       <!-- Mode tabs -->
       <div style="display:flex;gap:0;margin-bottom:12px;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;">
         <button id="import-tab-paste" onclick="switchImportTab('paste')" style="flex:1;padding:9px;font-size:12px;font-weight:600;border:none;cursor:pointer;background:var(--orange);color:#fff;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Paste from Google Maps</button>
-        <button id="import-tab-quick" onclick="switchImportTab('quick')" style="flex:1;padding:9px;font-size:12px;font-weight:600;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:var(--bg-input);color:var(--text-secondary);">⚡ Type Stops</button>
+        <button id="import-tab-quick" onclick="switchImportTab('quick')" style="flex:1;padding:9px;font-size:12px;font-weight:600;border:none;border-left:1.5px solid var(--border);cursor:pointer;background:var(--bg-input);color:var(--text-secondary);">Type Stops</button>
       </div>
 
       <!-- PASTE MODE -->
@@ -5926,12 +5927,16 @@ function toggleDiscover() {
 }
 
 function closeDiscover() {
-  document.getElementById('discover-panel').classList.remove('active');
+  const panel = document.getElementById('discover-panel');
+  panel.classList.remove('active');
+  panel.style.display = 'none'; // Force hide as backup
   document.getElementById('btn-discover').classList.remove('active');
   document.getElementById('discover-hint').classList.remove('active');
   cancelAreaSelect(); clearDiscoverMarkers();
   if (areaRect) { areaRect.setMap(null); areaRect = null; }
   discoverResults = []; discoverSelected.clear();
+  // Reset for next open
+  setTimeout(() => { panel.style.display = ''; }, 100);
 }
 
 function showDiscoverStep(n) { [1,2,3].forEach(i => document.getElementById('disc-step-'+i).style.display = i===n ? '' : 'none'); }
@@ -6144,7 +6149,7 @@ function renderDiscoverResults() {
     return `<div class="disc-item ${discoverSelected.has(i)?'selected':''}" data-disc-index="${i}" onmouseenter="hoverDiscoverItem(${i})" onmouseleave="unhoverDiscoverItem(${i})">
       <div class="disc-checkbox" onclick="event.stopPropagation();toggleDiscoverSelect(${i})"></div>
       <div class="disc-item-info" onclick="toggleDiscoverSelect(${i});focusDiscoverItem(${i})" style="cursor:pointer;"><div class="disc-item-name">${escHtml(b.name)}</div><div class="disc-item-type">${escHtml(b.type)}${b.rating ? ` · <span style="color:#F59E0B;">★</span> ${b.rating}` : ''}</div><div class="disc-item-addr">${escHtml(b.address)}</div></div>
-      <button class="disc-pin-btn ${alreadySaved?'saved':''}" onclick="event.stopPropagation();quickSavePin(${i})" title="${alreadySaved?'Already saved':'Save as pin'}">${alreadySaved ? '✓' : '⊕'}</button>
+      <button class="disc-pin-btn ${alreadySaved?'saved':''}" onclick="event.stopPropagation();quickSavePin(${i})" title="${alreadySaved?'Already saved':'Save as pin'}">${alreadySaved ? '✓' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'}</button>
     </div>`;
   }).join('');
   updateDiscoverCount();
@@ -6458,7 +6463,9 @@ async function startNavigation(routeInfo, destLabel) {
   document.getElementById('nav-mode').classList.add('active');
   // Close all panels that could overlap
   document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('discover-panel').classList.remove('active');
+  const discPanel = document.getElementById('discover-panel');
+  discPanel.classList.remove('active'); discPanel.style.display = 'none';
+  setTimeout(() => { discPanel.style.display = ''; }, 200);
   document.getElementById('btn-discover').classList.remove('active');
   document.getElementById('discover-hint').classList.remove('active');
   document.getElementById('directions-panel').classList.remove('active');
@@ -6609,6 +6616,10 @@ function exitNavigation() {
   document.getElementById('nav-mode').classList.remove('active'); hideDriveButton();
   if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; } tracking = false;
   navSteps = []; navCurrentStep = 0; navVisitedStops = 0;
+  
+  // Remove marathon indicator if present
+  const marathonInd = document.getElementById('marathon-indicator');
+  if (marathonInd) marathonInd.remove();
   
   // Clear traveled line
   if (routeTraveledLine) { routeTraveledLine.setMap(null); routeTraveledLine = null; }
@@ -8477,7 +8488,7 @@ function openMarathonMode() {
   document.getElementById('disc-step-2').style.display = 'none';
   document.getElementById('disc-step-3').style.display = 'none';
   
-  toast(`⚡ Marathon Mode: Draw area 1 of ${count}`);
+  toast(`Marathon Mode: Draw area 1 of ${count}`);
 }
 
 function addToMarathonFromDiscover() {
@@ -8599,8 +8610,12 @@ async function finishMarathonBuild() {
   // Hide build indicator
   document.getElementById('marathon-build-indicator').style.display = 'none';
   
+  // Switch to map view — collapse sidebar, hide planner
+  document.getElementById('sidebar').classList.remove('open');
+  collapseSidebar();
+  
   // Load and route first area
-  toast(`⚡ Starting Marathon! Routing Area 1 of ${marathonQueue.length}...`);
+  toast(`Starting Marathon! Routing Area 1 of ${marathonQueue.length}...`);
   await routeMarathonArea(0);
 }
 
@@ -8653,7 +8668,7 @@ async function routeMarathonArea(index) {
   // Auto-start navigation
   if (routeInfo) {
     const traffic = routeInfo.minsTraffic && routeInfo.minsTraffic !== routeInfo.mins ? ` (${routeInfo.minsTraffic} w/ traffic)` : '';
-    toast(`⚡ Area ${index + 1}: ${route.stopCount} stops — ${routeInfo.miles} mi, ~${routeInfo.mins} min${traffic}`);
+    toast(`Area ${index + 1}: ${route.stopCount} stops — ${routeInfo.miles} mi, ~${routeInfo.mins} min${traffic}`);
     
     // Start navigation
     startNavigation(routeInfo, `Area ${index + 1} (${route.stopCount} stops)`);
@@ -8720,7 +8735,7 @@ function showMarathonIndicator() {
         ${!isLastArea ? 
           `<button onclick="skipMarathonArea()" style="background:rgba(255,255,255,0.2);border:none;border-radius:12px;padding:4px 10px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;" title="Skip this area">Skip</button>
            <button onclick="advanceMarathon()" style="background:rgba(255,255,255,0.3);border:none;border-radius:12px;padding:4px 10px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">Next →</button>` : 
-          `<button onclick="endMarathon()" style="background:rgba(255,255,255,0.3);border:none;border-radius:12px;padding:4px 10px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">🎉 Done</button>`
+          `<button onclick="endMarathon()" style="background:rgba(255,255,255,0.3);border:none;border-radius:12px;padding:4px 10px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">Done</button>`
         }
         <button onclick="endMarathon()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.5);padding:0 4px;font-size:14px;" title="End marathon">✕</button>
       </div>
@@ -8737,7 +8752,7 @@ async function skipMarathonArea() {
   
   if (marathonCurrentIndex >= marathonQueue.length) {
     endMarathon();
-    toast('🎉 Marathon complete!');
+    toast('Marathon complete!');
     return;
   }
   
@@ -8745,7 +8760,7 @@ async function skipMarathonArea() {
   exitNavigation();
   
   // Route next area
-  toast(`⚡ Routing Area ${marathonCurrentIndex + 1} of ${marathonQueue.length}...`);
+  toast(`Routing Area ${marathonCurrentIndex + 1} of ${marathonQueue.length}...`);
   await routeMarathonArea(marathonCurrentIndex);
 }
 
@@ -8756,7 +8771,7 @@ async function advanceMarathon() {
   
   if (marathonCurrentIndex >= marathonQueue.length) {
     endMarathon();
-    toast('🎉 Marathon complete! All areas finished.');
+    toast('Marathon complete! All areas finished.');
     return;
   }
   
@@ -8764,7 +8779,7 @@ async function advanceMarathon() {
   exitNavigation();
   
   // Route next area
-  toast(`⚡ Routing Area ${marathonCurrentIndex + 1} of ${marathonQueue.length}...`);
+  toast(`Routing Area ${marathonCurrentIndex + 1} of ${marathonQueue.length}...`);
   await routeMarathonArea(marathonCurrentIndex);
 }
 
