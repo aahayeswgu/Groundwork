@@ -429,16 +429,41 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 .email-folder:hover { background:var(--bg-input); color:var(--text-primary); }
 .email-folder.active { background:var(--orange-dim); color:var(--orange); border-left-color:var(--orange); font-weight:700; }
 .email-folder-count { font-size:11px; font-weight:700; background:var(--orange); color:#fff; border-radius:10px; padding:1px 6px; margin-left:auto; }
+/* Gmail-style dense email rows */
 .email-item {
-  padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.1s;
+  display:flex; align-items:center; gap:0; padding:0; cursor:pointer;
+  border-bottom:1px solid var(--border); transition:background 0.1s; position:relative;
+  height:40px; min-height:40px;
 }
 .email-item:hover { background:var(--bg-input); }
-.email-item.active { background:var(--orange-dim); border-left:3px solid var(--orange); }
-.email-item.unread .email-item-from { font-weight:700; color:var(--text-primary); }
-.email-item-from { font-size:13px; font-weight:500; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.email-item-subject { font-size:13px; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
-.email-item-snippet { font-size:12px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
-.email-item-date { font-size:11px; color:var(--text-muted); flex-shrink:0; }
+.email-item.active { background:var(--orange-dim); }
+.email-item.unread { background:rgba(212,113,42,0.04); }
+.email-item.unread:hover { background:var(--bg-input); }
+.email-item .ei-cb { width:36px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.email-item .ei-star { width:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.email-item .ei-star svg { cursor:pointer; transition:transform 0.1s; }
+.email-item .ei-star svg:hover { transform:scale(1.2); }
+.email-item .ei-from { width:180px; flex-shrink:0; font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:8px; }
+.email-item.unread .ei-from { font-weight:700; color:var(--text-primary); }
+.email-item .ei-content { flex:1; min-width:0; display:flex; align-items:center; overflow:hidden; padding-right:8px; }
+.email-item .ei-subject { font-size:13px; color:var(--text-primary); white-space:nowrap; flex-shrink:0; max-width:50%; overflow:hidden; text-overflow:ellipsis; }
+.email-item.unread .ei-subject { font-weight:600; }
+.email-item .ei-sep { color:var(--text-muted); margin:0 6px; flex-shrink:0; font-size:12px; }
+.email-item .ei-snippet { font-size:13px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
+.email-item .ei-date { width:72px; flex-shrink:0; font-size:11px; color:var(--text-muted); text-align:right; padding-right:12px; }
+.email-item.unread .ei-date { font-weight:600; color:var(--text-secondary); }
+/* Hover actions overlay date */
+.email-item .ei-actions { display:none; position:absolute; right:0; top:0; bottom:0; align-items:center; gap:1px; padding:0 6px; background:var(--bg-input); }
+.email-item:hover .ei-actions { display:flex; }
+.email-item:hover .ei-date { visibility:hidden; }
+.ei-actions button { background:none; border:none; cursor:pointer; color:var(--text-muted); padding:6px; display:flex; border-radius:50%; transition:all 0.1s; }
+.ei-actions button:hover { background:rgba(212,113,42,0.15); color:var(--orange); }
+/* Category tabs */
+.email-cat-tabs { display:flex; border-bottom:1px solid var(--border); flex-shrink:0; }
+.email-cat-tab { flex:1; padding:10px 4px; text-align:center; font-size:11px; font-weight:600; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; background:none; border-top:none; border-left:none; border-right:none; font-family:inherit; text-transform:uppercase; letter-spacing:0.3px; }
+.email-cat-tab:hover { color:var(--text-primary); background:var(--bg-input); }
+.email-cat-tab.active { color:var(--orange); border-bottom-color:var(--orange); }
+.email-item-from,.email-item-subject,.email-item-snippet,.email-item-date { display:none; /* legacy classes hidden */ }
 @media (max-width:768px) {
   #email-left-panel { width:60px; }
   #email-left-panel .email-folder { padding:10px; justify-content:center; font-size:0; }
@@ -451,8 +476,14 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   .card-item-img { width:44px; height:28px; }
   .card-item-name { font-size:11px; }
   .card-item-company { display:none; }
-  #email-list-pane { max-width:none; }
+  #email-list-pane { max-width:none; flex:1; }
   #email-reader-pane { display:none; }
+  /* Mobile email rows: hide snippet, shrink from */
+  .email-item .ei-from { width:100px; }
+  .email-item .ei-snippet { display:none; }
+  .email-item .ei-sep { display:none; }
+  .email-item .ei-actions { display:none !important; }
+  .email-cat-tab { font-size:10px; padding:8px 2px; }
 }
 @media (max-width:1100px) {
   .card-detail-grid { grid-template-columns:1fr !important; }
@@ -1016,6 +1047,14 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
           <button id="nav-skip-btn" onclick="skipCurrentStop()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:#fff;font-size:11px;font-weight:600;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">Skip →</button>
         </div>
       </div>
+      <!-- Marathon nav strip — hidden unless marathon active -->
+      <div id="marathon-nav-strip" style="display:none;align-items:center;justify-content:space-between;padding:8px 20px;margin:0 12px;background:#16A34A;color:#fff;border-top:1px solid rgba(255,255,255,0.1);font-size:12px;font-weight:600;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          <span id="marathon-nav-label">Area 1/2 · 5 stops</span>
+        </div>
+        <div id="marathon-nav-btns" style="display:flex;gap:6px;"></div>
+      </div>
       <div class="nav-bottom">
         <div class="nav-bottom-left">
           <div class="nav-eta" id="nav-eta">—</div>
@@ -1345,9 +1384,17 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
         </div>
       </div>
       <!-- Email List -->
-      <div id="email-list-pane" style="width:320px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;">
+      <div id="email-list-pane" style="flex:1;max-width:55%;min-width:340px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;">
+        <!-- Category Tabs (Gmail-style) -->
+        <div class="email-cat-tabs" id="email-cat-tabs">
+          <button class="email-cat-tab active" data-cat="all" onclick="gmailFilterCategory('all')">All Mail</button>
+          <button class="email-cat-tab" data-cat="primary" onclick="gmailFilterCategory('primary')">Primary</button>
+          <button class="email-cat-tab" data-cat="social" onclick="gmailFilterCategory('social')">Social</button>
+          <button class="email-cat-tab" data-cat="promotions" onclick="gmailFilterCategory('promotions')">Promos</button>
+          <button class="email-cat-tab" data-cat="updates" onclick="gmailFilterCategory('updates')">Updates</button>
+        </div>
         <!-- Search Bar -->
-        <div id="email-search-bar" style="display:none;padding:8px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <div id="email-search-bar" style="padding:8px;border-bottom:1px solid var(--border);flex-shrink:0;">
           <div style="position:relative;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="email-search-input" placeholder="Search mail..." style="width:100%;padding:8px 8px 8px 32px;border:1px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);font-size:13px;outline:none;font-family:inherit;" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter')gmailSearch()">
@@ -1357,7 +1404,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
           </div>
         </div>
         <!-- Bulk Action Toolbar -->
-        <div id="email-bulk-bar" style="display:none;padding:6px 8px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-secondary);align-items:center;gap:4px;">
+        <div id="email-bulk-bar" style="padding:4px 8px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-secondary);display:flex;align-items:center;gap:4px;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary);font-weight:600;">
             <input type="checkbox" id="email-select-all" onchange="gmailSelectAll(this.checked)" style="accent-color:var(--orange);width:16px;height:16px;cursor:pointer;">
             <span id="email-selected-count">0 selected</span>
@@ -4198,6 +4245,7 @@ let gmailNextPageToken = null;
 let gmailSearchQuery = '';
 let gmailSelectedIds = new Set();
 let gmailSignature = '';
+let gmailCategoryFilter = 'all';
 let gmailUndoTimer = null;
 try { gmailSignature = localStorage.getItem('gw_gmail_signature') || ''; } catch(e) {}
 
@@ -4288,20 +4336,39 @@ function updateInboxCount() {
 
 function renderEmailList() {
   const list = document.getElementById('email-list');
-  if (!gmailMessages.length) { list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">No messages found.</div>'; return; }
-  list.innerHTML = gmailMessages.map(m => {
-    const fromName = (m.from||'').replace(/<.*>/,'').trim().split(' ')[0];
+  // Apply category filter
+  let msgs = gmailMessages;
+  if (gmailCategoryFilter && gmailCategoryFilter !== 'all') {
+    const catLabel = 'CATEGORY_' + gmailCategoryFilter.toUpperCase();
+    msgs = gmailMessages.filter(m => (m.labelIds || []).includes(catLabel));
+  }
+  if (!msgs.length) { list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">No messages found.</div>'; return; }
+  list.innerHTML = msgs.map(m => {
+    const fromRaw = (m.from||'').replace(/<.*>/,'').trim();
+    const fromName = fromRaw.length > 24 ? fromRaw.substring(0,22)+'…' : fromRaw;
     const dateStr = formatEmailDate(m.date);
     const checked = gmailSelectedIds.has(m.id) ? 'checked' : '';
-    return `<div class="email-item ${m.unread?'unread':''}" data-id="${m.id}" style="display:flex;align-items:flex-start;gap:8px;">
-      <input type="checkbox" class="email-cb" data-id="${m.id}" ${checked} onchange="gmailToggleSelect('${m.id}',this.checked)" onclick="event.stopPropagation()" style="accent-color:var(--orange);width:16px;height:16px;cursor:pointer;margin-top:12px;flex-shrink:0;">
-      <div onclick="gmailReadEmail('${m.id}')" style="flex:1;min-width:0;cursor:pointer;padding:10px 10px 10px 0;">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-          <div style="font-weight:${m.unread?'700':'400'};font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(fromName)}</div>
-          <div style="font-size:11px;color:var(--text-muted);flex-shrink:0;">${dateStr}</div>
-        </div>
-        <div style="font-size:12px;font-weight:${m.unread?'600':'400'};color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">${escHtml(m.subject)}</div>
-        <div style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;">${escHtml(m.snippet)}</div>
+    const starred = m.starred;
+    const starFill = starred ? 'fill="#F59E0B" stroke="#F59E0B"' : 'fill="none" stroke="var(--text-muted)"';
+    const subj = m.subject || '(no subject)';
+    const snip = m.snippet || '';
+    return `<div class="email-item ${m.unread?'unread':''}" data-id="${m.id}" onclick="gmailReadEmail('${m.id}')">
+      <div class="ei-cb" onclick="event.stopPropagation()">
+        <input type="checkbox" class="email-cb" data-id="${m.id}" ${checked} onchange="gmailToggleSelect('${m.id}',this.checked)" style="accent-color:var(--orange);width:15px;height:15px;cursor:pointer;">
+      </div>
+      <div class="ei-star" onclick="event.stopPropagation();gmailInlineStar('${m.id}')">
+        <svg width="16" height="16" viewBox="0 0 24 24" ${starFill} stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="ei-from">${escHtml(fromName)}</div>
+      <div class="ei-content">
+        <span class="ei-subject">${escHtml(subj)}</span>
+        ${snip ? `<span class="ei-sep">—</span><span class="ei-snippet">${escHtml(snip)}</span>` : ''}
+      </div>
+      <div class="ei-date">${dateStr}</div>
+      <div class="ei-actions" onclick="event.stopPropagation()">
+        <button onclick="gmailArchiveMsg('${m.id}')" title="Archive"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></button>
+        <button onclick="gmailTrashQuick('${m.id}')" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+        <button onclick="gmailMarkReadQuick('${m.id}')" title="${m.unread?'Mark read':'Mark unread'}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,7 12,13 2,7"/></svg></button>
       </div>
     </div>`;
   }).join('');
@@ -4399,6 +4466,51 @@ async function gmailToggleStar(msgId){const m=gmailMessages.find(x=>x.id===msgId
 async function gmailTrash(msgId){if(!confirm('Move this email to trash?'))return;await gmailApiFetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${msgId}/trash`,{method:'POST'});toast('Moved to trash.');gmailMessages=gmailMessages.filter(m=>m.id!==msgId);renderEmailList();document.getElementById('email-reader').style.display='none';document.getElementById('email-reader-empty').style.display='';}
 async function gmailArchiveMsg(msgId){await gmailApiFetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${msgId}/modify`,{method:'POST',body:JSON.stringify({removeLabelIds:['INBOX']})});toast('Archived.');if(gmailCurrentFolder==='INBOX'){gmailMessages=gmailMessages.filter(m=>m.id!==msgId);renderEmailList();}document.getElementById('email-reader').style.display='none';document.getElementById('email-reader-empty').style.display='';}
 
+// Gmail category filter
+function gmailFilterCategory(cat) {
+  gmailCategoryFilter = cat;
+  document.querySelectorAll('.email-cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
+  renderEmailList();
+}
+
+// Inline star toggle (from list row, no reload of reader)
+async function gmailInlineStar(msgId) {
+  const m = gmailMessages.find(x => x.id === msgId);
+  if (!m) return;
+  const was = m.starred;
+  m.starred = !was;
+  renderEmailList(); // instant UI feedback
+  await gmailApiFetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${msgId}/modify`, {
+    method: 'POST', body: JSON.stringify(was ? {removeLabelIds:['STARRED']} : {addLabelIds:['STARRED']})
+  });
+}
+
+// Quick trash from hover action (no confirm)
+async function gmailTrashQuick(msgId) {
+  await gmailApiFetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${msgId}/trash`, {method:'POST'});
+  gmailMessages = gmailMessages.filter(m => m.id !== msgId);
+  renderEmailList();
+  toast('Moved to trash.');
+  // If reader was showing this email, clear it
+  const reader = document.getElementById('email-reader');
+  if (reader.style.display === 'flex') {
+    reader.style.display = 'none';
+    document.getElementById('email-reader-empty').style.display = '';
+  }
+}
+
+// Quick mark read/unread from hover action
+async function gmailMarkReadQuick(msgId) {
+  const m = gmailMessages.find(x => x.id === msgId);
+  if (!m) return;
+  const makeUnread = !m.unread;
+  m.unread = makeUnread;
+  renderEmailList();
+  await gmailApiFetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${msgId}/modify`, {
+    method: 'POST', body: JSON.stringify(makeUnread ? {addLabelIds:['UNREAD']} : {removeLabelIds:['UNREAD']})
+  });
+  toast(makeUnread ? 'Marked unread' : 'Marked read');
+}
 function gmailCompose(){openEmailCompose('','','','');}
 function toggleCcBcc(){const f=document.getElementById('email-ccbcc-fields');f.style.display=f.style.display==='none'?'':'none';}
 
@@ -5287,7 +5399,13 @@ function toggleTheme() {
   const next = order[(order.indexOf(curr) + 1) % order.length];
   document.body.setAttribute('data-theme', next);
   try { localStorage.setItem('gw_theme', next); } catch(e){}
-  if (map) map.setOptions({ styles: next === 'dark' ? DARK_MAP_STYLE : [] });
+  if (map) {
+    if (satelliteMode) {
+      map.setOptions({ styles: [] }); // No custom styles in satellite
+    } else {
+      map.setOptions({ styles: next === 'dark' ? DARK_MAP_STYLE : (next === 'gray' ? GRAY_MAP_STYLE : []) });
+    }
+  }
   toast(next.charAt(0).toUpperCase() + next.slice(1) + ' mode');
   debouncedSync('profile', () => pushProfileToCloud(), 2000);
 }
@@ -6544,7 +6662,7 @@ function updateNavDisplay() {
   document.getElementById('nav-street').textContent = '';
   document.getElementById('nav-step-dist').textContent = formatNavDist(step.distance);
   document.getElementById('nav-turn-icon').innerHTML = getTurnIcon(step.instruction);
-  document.getElementById('nav-top').style.background = '#2D6A4F';
+  document.getElementById('nav-top').style.background = marathonActive ? '#16A34A' : '#2D6A4F';
 }
 
 function advanceNavStep(currentLL) {
@@ -6620,6 +6738,8 @@ function exitNavigation() {
   // Remove marathon indicator if present
   const marathonInd = document.getElementById('marathon-indicator');
   if (marathonInd) marathonInd.remove();
+  const marathonStrip = document.getElementById('marathon-nav-strip');
+  if (marathonStrip) marathonStrip.style.display = 'none';
   
   // Clear traveled line
   if (routeTraveledLine) { routeTraveledLine.setMap(null); routeTraveledLine = null; }
@@ -8479,6 +8599,15 @@ function openMarathonMode() {
   marathonTargetCount = count;
   marathonQueue = [];
   
+  // AUTO-SWITCH TO MAP VIEW: collapse sidebar on mobile, switch to Pins tab
+  const sidebar = document.getElementById('sidebar');
+  if (window.innerWidth <= 768) {
+    sidebar.classList.remove('open');
+  }
+  // Switch sidebar to Pins tab so planner isn't blocking the discover panel
+  const pinsTab = document.querySelector('.nav-tab[data-view="pins"]');
+  if (pinsTab) switchTab(pinsTab, 'pins');
+  
   // Show the indicator in discover panel
   updateMarathonBuildUI();
   
@@ -8714,33 +8843,45 @@ function startMarathon() {
 }
 
 function showMarathonIndicator() {
-  // Remove existing indicator
+  // Remove legacy floating indicator if it exists
   const existing = document.getElementById('marathon-indicator');
   if (existing) existing.remove();
   
-  if (!marathonActive || marathonQueue.length === 0) return;
+  const strip = document.getElementById('marathon-nav-strip');
+  if (!strip) return;
+  
+  if (!marathonActive || marathonQueue.length === 0) {
+    strip.style.display = 'none';
+    // Reset nav-top to default pine green
+    const navTop = document.getElementById('nav-top');
+    if (navTop) navTop.style.background = '#2D6A4F';
+    return;
+  }
   
   const currentRoute = marathonQueue[marathonCurrentIndex];
   const isLastArea = marathonCurrentIndex >= marathonQueue.length - 1;
   
-  const indicator = document.createElement('div');
-  indicator.id = 'marathon-indicator';
-  indicator.innerHTML = `
-    <div style="position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:1000;background:var(--green);color:#fff;padding:10px 14px;border-radius:24px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 4px 16px rgba(34,197,94,0.4);">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      <span>Area ${marathonCurrentIndex + 1}/${marathonQueue.length}</span>
-      <span style="opacity:0.5;">•</span>
-      <span>${currentRoute.stopCount} stops</span>
-      <div style="display:flex;gap:4px;margin-left:4px;">
-        ${!isLastArea ? 
-          `<button onclick="skipMarathonArea()" style="background:rgba(255,255,255,0.2);border:none;border-radius:12px;padding:4px 10px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;" title="Skip this area">Skip</button>
-           <button onclick="advanceMarathon()" style="background:rgba(255,255,255,0.3);border:none;border-radius:12px;padding:4px 10px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">Next →</button>` : 
-          `<button onclick="endMarathon()" style="background:rgba(255,255,255,0.3);border:none;border-radius:12px;padding:4px 10px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;">Done</button>`
-        }
-        <button onclick="endMarathon()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.5);padding:0 4px;font-size:14px;" title="End marathon">✕</button>
-      </div>
-    </div>`;
-  document.body.appendChild(indicator);
+  // Tint nav-top to marathon green
+  const navTop = document.getElementById('nav-top');
+  if (navTop) navTop.style.background = '#16A34A';
+  
+  // Update label
+  document.getElementById('marathon-nav-label').textContent = 
+    `Area ${marathonCurrentIndex + 1}/${marathonQueue.length} · ${currentRoute.stopCount} stops`;
+  
+  // Update buttons
+  const btnsDiv = document.getElementById('marathon-nav-btns');
+  if (!isLastArea) {
+    btnsDiv.innerHTML = `
+      <button onclick="skipMarathonArea()" style="background:rgba(255,255,255,0.2);border:none;border-radius:6px;padding:5px 12px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">Skip Area</button>
+      <button onclick="advanceMarathon()" style="background:rgba(255,255,255,0.3);border:none;border-radius:6px;padding:5px 12px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.3)'">Next Area →</button>
+      <button onclick="endMarathon()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.5);padding:2px 6px;font-size:16px;line-height:1;" title="End marathon">✕</button>`;
+  } else {
+    btnsDiv.innerHTML = `
+      <button onclick="endMarathon()" style="background:rgba(255,255,255,0.3);border:none;border-radius:6px;padding:5px 12px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.4)'" onmouseout="this.style.background='rgba(255,255,255,0.3)'">Finish Marathon</button>`;
+  }
+  
+  strip.style.display = 'flex';
 }
 
 async function skipMarathonArea() {
@@ -8790,8 +8931,17 @@ function endMarathon() {
   marathonBuildMode = false;
   marathonTargetCount = 0;
   
+  // Hide inline marathon strip
+  const strip = document.getElementById('marathon-nav-strip');
+  if (strip) strip.style.display = 'none';
+  
+  // Remove legacy floating indicator if somehow still around
   const indicator = document.getElementById('marathon-indicator');
   if (indicator) indicator.remove();
+  
+  // Reset nav-top to default pine green
+  const navTop = document.getElementById('nav-top');
+  if (navTop) navTop.style.background = '#2D6A4F';
   
   // Exit navigation if active
   if (navMode) {
