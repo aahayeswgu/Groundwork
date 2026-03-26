@@ -399,6 +399,17 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 }
 .satellite-toggle:hover { border-color:var(--orange); color:var(--orange); }
 .satellite-toggle.active { background:var(--orange); color:#fff; border-color:var(--orange); }
+/* Scout Mode pulse */
+.map-ctrl-btn.scouting, .nav-voice-btn.scouting { background:#8B5CF6 !important; color:#fff !important; border-color:#8B5CF6 !important; animation:scoutPulse 2s ease-in-out infinite; }
+@keyframes scoutPulse { 0%,100% { box-shadow:0 0 0 0 rgba(139,92,246,0.4); } 50% { box-shadow:0 0 0 10px rgba(139,92,246,0); } }
+.scout-toast {
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999;
+  background:rgba(17,17,17,0.95); color:#fff; padding:24px 32px; border-radius:20px;
+  font-family:'DM Sans',sans-serif; max-width:380px; width:calc(100% - 40px);
+  box-shadow:0 20px 60px rgba(0,0,0,0.5); border:1.5px solid #8B5CF6;
+  text-align:center; animation:scoutSlideIn 0.3s ease-out;
+}
+@keyframes scoutSlideIn { from { opacity:0; transform:translate(-50%,-50%) scale(0.9); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
 .add-pin-hint {
   position:absolute; top:60px; left:50%; transform:translateX(-50%); z-index:10;
   background:var(--orange); color:#fff; padding:10px 20px; border-radius:20px;
@@ -916,6 +927,9 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       <button class="map-ctrl-btn" id="btn-satellite" title="Toggle satellite view" onclick="toggleSatellite()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       </button>
+      <button class="map-ctrl-btn" id="btn-scout" title="Scout Mode — find prospects nearby" onclick="toggleScoutMode()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
+      </button>
       <!-- Import Route disabled for now - needs rebuild
       <button class="map-ctrl-btn" id="btn-import-route" title="Import Google Maps route" onclick="openImportRoute()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1088,6 +1102,10 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
           </button>
           <button class="nav-voice-btn" id="nav-recenter-btn" onclick="recenterNav()" title="Recenter" style="display:none;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+          </button>
+          <button class="nav-voice-btn" id="nav-scout-btn" onclick="toggleScoutMode()" title="Scout Mode — find prospects nearby" style="position:relative;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
+            <span style="position:absolute;top:-2px;right:-2px;width:12px;height:12px;background:#8B5CF6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">S</span>
           </button>
         </div>
         <div class="nav-bottom-right">
@@ -7448,6 +7466,358 @@ function speak(text) {
 }
 
 if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+
+// ═══════════════════════════════════════
+// SCOUT MODE — Voice-activated prospect finder
+// ═══════════════════════════════════════
+let scoutActive = false;
+let scoutProspects = [];
+let scoutCurrentIndex = 0;
+let scoutRecognition = null;
+let scoutOverlay = null;
+
+function toggleScoutMode() {
+  if (scoutActive) { endScoutMode(); return; }
+  startScoutMode();
+}
+
+async function startScoutMode() {
+  // Check speech support
+  if (!window.speechSynthesis) { toast('Speech synthesis not supported in this browser.'); return; }
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { toast('Voice recognition not supported in this browser.'); return; }
+  
+  scoutActive = true;
+  scoutProspects = [];
+  scoutCurrentIndex = 0;
+  
+  // Highlight buttons
+  const navBtn = document.getElementById('nav-scout-btn');
+  const mapBtn = document.getElementById('btn-scout');
+  if (navBtn) navBtn.classList.add('scouting');
+  if (mapBtn) mapBtn.classList.add('scouting');
+  
+  // Enable voice if not already
+  if (!voiceEnabled) { voiceEnabled = true; const vBtn = document.getElementById('nav-voice-btn'); if (vBtn) vBtn.classList.add('active'); }
+  
+  showScoutOverlay('Scanning for prospects nearby...', 'Getting your location');
+  
+  // Get GPS
+  let gpsPos;
+  try {
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000 }));
+    gpsPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  } catch(e) {
+    speak('Could not get your location.');
+    showScoutOverlay('GPS unavailable', 'Enable location services and try again');
+    setTimeout(endScoutMode, 3000);
+    return;
+  }
+  
+  showScoutOverlay('Scanning for prospects...', 'Searching within 100 meters');
+  
+  // Search for businesses nearby using Google Places
+  const searchTypes = ['general_contractor', 'electrician', 'plumber', 'roofing_contractor', 'painter'];
+  const allResults = [];
+  
+  // Run nearbySearch for contractor types
+  const searchPromises = [
+    placesNearbySearch(gpsPos, 150, 'contractor'),
+    placesNearbySearch(gpsPos, 150, 'construction'),
+    placesNearbySearch(gpsPos, 150, 'electrician'),
+    placesNearbySearch(gpsPos, 150, 'plumber'),
+    placesNearbySearch(gpsPos, 150, 'manufacturing'),
+    placesNearbySearch(gpsPos, 150, 'welding'),
+  ];
+  
+  const searchResults = await Promise.allSettled(searchPromises);
+  searchResults.forEach(r => { if (r.status === 'fulfilled' && r.value) allResults.push(...r.value); });
+  
+  // Deduplicate by place_id
+  const seen = new Set();
+  const unique = [];
+  for (const r of allResults) {
+    const key = r.place_id || (r.name + r.lat);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(r);
+  }
+  
+  // Filter out already-pinned businesses and excluded chains
+  const filtered = unique.filter(r => {
+    if (EXCLUDED_CHAINS.test(r.name)) return false;
+    if (EXCLUDED_NAME_PATTERNS.test(r.name)) return false;
+    // Check if already a pin
+    const alreadyPinned = pins.some(p => 
+      (p.placeId && p.placeId === r.place_id) ||
+      (p.title.toLowerCase() === r.name.toLowerCase()) ||
+      (Math.abs(p.lat - r.lat) < 0.0005 && Math.abs(p.lng - r.lng) < 0.0005)
+    );
+    if (alreadyPinned) return false;
+    return true;
+  });
+  
+  // Sort by: rating (desc) then distance (asc)
+  filtered.sort((a, b) => {
+    const ratingDiff = (b.rating || 0) - (a.rating || 0);
+    if (Math.abs(ratingDiff) > 0.5) return ratingDiff;
+    const dA = haversineDistance(gpsPos.lat, gpsPos.lng, a.lat, a.lng);
+    const dB = haversineDistance(gpsPos.lat, gpsPos.lng, b.lat, b.lng);
+    return dA - dB;
+  });
+  
+  scoutProspects = filtered;
+  
+  if (scoutProspects.length === 0) {
+    speak('No new prospects found within 100 meters. Try moving to a new area.');
+    showScoutOverlay('No prospects found', 'No new businesses nearby. Keep driving!');
+    setTimeout(endScoutMode, 4000);
+    return;
+  }
+  
+  speak(`Found ${scoutProspects.length} prospect${scoutProspects.length > 1 ? 's' : ''} nearby.`);
+  
+  // Start announcing
+  setTimeout(() => announceScoutProspect(), 2000);
+}
+
+function placesNearbySearch(location, radius, keyword) {
+  return new Promise((resolve) => {
+    placesService.nearbySearch({
+      location: new google.maps.LatLng(location.lat, location.lng),
+      radius: radius,
+      keyword: keyword,
+    }, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+        resolve(results.map(r => ({
+          name: r.name,
+          lat: r.geometry.location.lat(),
+          lng: r.geometry.location.lng(),
+          place_id: r.place_id,
+          rating: r.rating || 0,
+          ratingCount: r.user_ratings_total || 0,
+          address: r.vicinity || '',
+          types: r.types || [],
+          open: r.opening_hours ? r.opening_hours.isOpen() : null,
+        })));
+      } else {
+        resolve([]);
+      }
+    });
+  });
+}
+
+function announceScoutProspect() {
+  if (!scoutActive || scoutCurrentIndex >= scoutProspects.length) {
+    speak('No more prospects in this area. Scout mode ending.');
+    showScoutOverlay('Scouting complete', `Reviewed ${scoutCurrentIndex} prospect${scoutCurrentIndex !== 1 ? 's' : ''}`);
+    setTimeout(endScoutMode, 3000);
+    return;
+  }
+  
+  const prospect = scoutProspects[scoutCurrentIndex];
+  const dist = gpsMarker ? 
+    Math.round(haversineDistance(gpsMarker.getPosition().lat(), gpsMarker.getPosition().lng(), prospect.lat, prospect.lng) * 5280) : 
+    null;
+  const distText = dist ? `${dist} feet away` : 'nearby';
+  const ratingText = prospect.rating > 0 ? `${prospect.rating} stars` : 'no rating';
+  const openText = prospect.open === true ? ', currently open' : (prospect.open === false ? ', currently closed' : '');
+  
+  const announcement = `${prospect.name}. ${ratingText}, ${distText}${openText}. Do you want to stop here?`;
+  
+  showScoutOverlay(
+    prospect.name,
+    `${prospect.rating > 0 ? '⭐ ' + prospect.rating + ' (' + prospect.ratingCount + ')' : 'No rating'} · ${distText}${openText}`,
+    scoutCurrentIndex + 1,
+    scoutProspects.length,
+    prospect.address
+  );
+  
+  speak(announcement);
+  
+  // Wait for speech to finish, then listen
+  setTimeout(() => {
+    if (scoutActive) listenForScoutResponse();
+  }, Math.max(2500, announcement.length * 60));
+}
+
+function listenForScoutResponse() {
+  if (!scoutActive) return;
+  
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  scoutRecognition = new SpeechRec();
+  scoutRecognition.continuous = false;
+  scoutRecognition.interimResults = false;
+  scoutRecognition.lang = 'en-US';
+  scoutRecognition.maxAlternatives = 3;
+  
+  scoutRecognition.onresult = (event) => {
+    const results = [];
+    for (let i = 0; i < event.results.length; i++) {
+      for (let j = 0; j < event.results[i].length; j++) {
+        results.push(event.results[i][j].transcript.toLowerCase().trim());
+      }
+    }
+    const transcript = results.join(' ');
+    
+    if (transcript.match(/\b(yes|yeah|yep|sure|yup|stop|go|do it|let's go|add it|hit it)\b/i)) {
+      handleScoutYes();
+    } else if (transcript.match(/\b(no|nope|nah|skip|next|pass)\b/i)) {
+      handleScoutNo();
+    } else {
+      // Didn't understand — ask again
+      speak('Say yes to stop, or no for next.');
+      setTimeout(() => { if (scoutActive) listenForScoutResponse(); }, 2000);
+    }
+  };
+  
+  scoutRecognition.onerror = (event) => {
+    if (event.error === 'no-speech') {
+      // Timeout — remind them
+      speak('Say yes or no.');
+      setTimeout(() => { if (scoutActive) listenForScoutResponse(); }, 1500);
+    } else if (event.error !== 'aborted') {
+      console.warn('Scout recognition error:', event.error);
+    }
+  };
+  
+  scoutRecognition.onend = () => {
+    // Recognition ended without result — could be timeout
+  };
+  
+  try { scoutRecognition.start(); } catch(e) { console.warn('Scout recognition start error:', e); }
+}
+
+async function handleScoutYes() {
+  if (!scoutActive || scoutCurrentIndex >= scoutProspects.length) return;
+  const prospect = scoutProspects[scoutCurrentIndex];
+  
+  speak(`Routing to ${prospect.name}.`);
+  showScoutOverlay('Routing to ' + prospect.name, 'Adding to your stops and rerouting...');
+  
+  // Auto-pin the business
+  const newPin = {
+    id: 'pin_' + Date.now(),
+    title: prospect.name,
+    address: prospect.address || '',
+    lat: prospect.lat,
+    lng: prospect.lng,
+    placeId: prospect.place_id || '',
+    status: (statuses[0] || {}).id || 'prospect',
+    contact: '',
+    phone: '',
+    followup: '',
+    notes: [{
+      text: `Discovered via Scout Mode — ${prospect.rating > 0 ? prospect.rating + '★' : 'no rating'}`,
+      date: new Date().toISOString()
+    }],
+    created: new Date().toISOString()
+  };
+  pins.push(newPin);
+  savePins();
+  addMarkerToMap(newPin);
+  renderPinList();
+  
+  // Add to today's stops as NEXT stop (priority)
+  if (!todayStops.includes(newPin.id)) {
+    todayStops.unshift(newPin.id); // Insert at front = next stop
+    savePlannerDay();
+  }
+  
+  logActivity('Scout: routed to ' + prospect.name);
+  toast('📍 ' + prospect.name + ' pinned and routing!');
+  
+  // If actively navigating, insert into navStopWaypoints as next unvisited stop
+  if (navActive && navStopWaypoints.length > 0) {
+    const nextUnvisitedIdx = navStopWaypoints.findIndex(s => !s.visited);
+    const scoutStop = { id: newPin.id, lat: newPin.lat, lng: newPin.lng, title: newPin.title, visited: false };
+    if (nextUnvisitedIdx >= 0) {
+      navStopWaypoints.splice(nextUnvisitedIdx, 0, scoutStop);
+    } else {
+      navStopWaypoints.push(scoutStop);
+    }
+    navTotalStops = navStopWaypoints.length;
+    updateStopProgressUI();
+  }
+  
+  // End scout mode and reroute
+  endScoutMode();
+  
+  // Reroute from current position with this as next stop
+  if (navActive || window._lastRouteWaypoints) {
+    await rerouteFromCurrentPosition();
+  } else {
+    // Not navigating — build a quick route to this business
+    let origin;
+    try {
+      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
+      origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    } catch(e) {
+      origin = { lat: newPin.lat, lng: newPin.lng };
+    }
+    const wp = [origin, { lat: newPin.lat, lng: newPin.lng }];
+    const info = await drawRoadRoute(wp, false);
+    if (info) {
+      window._lastRouteWaypoints = wp;
+      window._lastRouteInfo = info;
+      window._lastRouteDest = prospect.name;
+      showDriveButton();
+    }
+  }
+}
+
+function handleScoutNo() {
+  if (!scoutActive) return;
+  speak('Skipping.');
+  scoutCurrentIndex++;
+  setTimeout(() => announceScoutProspect(), 1200);
+}
+
+function showScoutOverlay(title, subtitle, current, total, address) {
+  // Remove existing
+  if (scoutOverlay) scoutOverlay.remove();
+  
+  const progress = (current && total) ? `<div style="margin-bottom:12px;font-size:11px;color:rgba(255,255,255,0.5);font-weight:600;">${current} of ${total} prospect${total > 1 ? 's' : ''}</div>` : '';
+  const addrHtml = address ? `<div style="margin-top:6px;font-size:12px;color:rgba(255,255,255,0.5);">${escHtml(address)}</div>` : '';
+  const controlsHtml = (current && total) ? `
+    <div style="display:flex;gap:10px;margin-top:16px;justify-content:center;">
+      <button onclick="handleScoutYes()" style="padding:10px 24px;border:none;border-radius:10px;background:#22C55E;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✓ Yes, stop here</button>
+      <button onclick="handleScoutNo()" style="padding:10px 24px;border:none;border-radius:10px;background:rgba(255,255,255,0.15);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✕ Next</button>
+    </div>` : '';
+  const cancelHtml = `<button onclick="endScoutMode()" style="margin-top:12px;background:none;border:none;color:rgba(255,255,255,0.3);font-size:12px;cursor:pointer;font-family:inherit;">End Scout Mode</button>`;
+  
+  const el = document.createElement('div');
+  el.className = 'scout-toast';
+  el.innerHTML = `
+    ${progress}
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
+      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8B5CF6;">Scout Mode</span>
+    </div>
+    <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.3;">${escHtml(title)}</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:4px;">${subtitle}</div>
+    ${addrHtml}
+    ${controlsHtml}
+    ${cancelHtml}
+  `;
+  document.body.appendChild(el);
+  scoutOverlay = el;
+}
+
+function endScoutMode() {
+  scoutActive = false;
+  scoutProspects = [];
+  scoutCurrentIndex = 0;
+  
+  if (scoutRecognition) { try { scoutRecognition.abort(); } catch(e) {} scoutRecognition = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (scoutOverlay) { scoutOverlay.remove(); scoutOverlay = null; }
+  
+  // Remove button highlights
+  const navBtn = document.getElementById('nav-scout-btn');
+  const mapBtn = document.getElementById('btn-scout');
+  if (navBtn) navBtn.classList.remove('scouting');
+  if (mapBtn) mapBtn.classList.remove('scouting');
+}
 
 // ═══════════════════════════════════════
 // MOBILE / SIDEBAR
