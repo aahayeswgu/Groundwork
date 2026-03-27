@@ -7513,22 +7513,26 @@ async function startScoutMode() {
     return;
   }
   
-  showScoutOverlay('Scanning for prospects...', 'Searching within 100 meters');
+  showScoutOverlay('Scanning for prospects...', 'Searching within half a mile');
   
-  // Search for businesses nearby using Google Places
-  const searchTypes = ['general_contractor', 'electrician', 'plumber', 'roofing_contractor', 'painter'];
-  const allResults = [];
-  
-  // Run nearbySearch for contractor types
+  // Search for businesses nearby using Google Places — 800m (~0.5 mile) radius
+  const SCOUT_RADIUS = 800;
   const searchPromises = [
-    placesNearbySearch(gpsPos, 150, 'contractor'),
-    placesNearbySearch(gpsPos, 150, 'construction'),
-    placesNearbySearch(gpsPos, 150, 'electrician'),
-    placesNearbySearch(gpsPos, 150, 'plumber'),
-    placesNearbySearch(gpsPos, 150, 'manufacturing'),
-    placesNearbySearch(gpsPos, 150, 'welding'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'contractor'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'construction company'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'electrician'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'plumber plumbing'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'HVAC'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'manufacturing'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'welding fabrication'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'machine shop'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'roofing company'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'fencing company'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'concrete paving'),
+    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'landscape company'),
   ];
   
+  const allResults = [];
   const searchResults = await Promise.allSettled(searchPromises);
   searchResults.forEach(r => { if (r.status === 'fulfilled' && r.value) allResults.push(...r.value); });
   
@@ -7568,9 +7572,9 @@ async function startScoutMode() {
   scoutProspects = filtered;
   
   if (scoutProspects.length === 0) {
-    speak('No new prospects found within 100 meters. Try moving to a new area.');
-    showScoutOverlay('No prospects found', 'No new businesses nearby. Keep driving!');
-    setTimeout(endScoutMode, 4000);
+    speak('No new prospects found within half a mile. Try again in a different area.');
+    showScoutOverlay('No prospects found', 'No new businesses within half a mile. Keep driving!');
+    setTimeout(endScoutMode, 5000);
     return;
   }
   
