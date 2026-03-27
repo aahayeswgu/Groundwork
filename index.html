@@ -701,7 +701,8 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   #route-action-fabs { bottom:calc(68px + env(safe-area-inset-bottom, 0px)) !important; }
 
   /* Satellite toggle above bottom bar */
-  .satellite-toggle { bottom:72px; }
+  .satellite-toggle { bottom:calc(68px + env(safe-area-inset-bottom, 0px)); z-index:18; }
+  body.route-bar-active .satellite-toggle { bottom:calc(126px + env(safe-area-inset-bottom, 0px)); }
 
   /* Map controls tighter on mobile */
   .map-controls { top:12px; right:10px; gap:6px; }
@@ -731,9 +732,11 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 
   /* Marathon indicator above bottom bar */
   #marathon-build-indicator { bottom:70px !important; }
+  body.route-bar-active #marathon-build-indicator { bottom:130px !important; }
 
   /* Toast above bottom bar */
   .toast { bottom:120px !important; }
+  body.route-bar-active .toast { bottom:180px !important; }
 
   /* Settings menu full-width on mobile */
   #settings-menu { width:calc(100% - 24px) !important; left:12px !important; right:12px !important; max-width:none !important; }
@@ -751,7 +754,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 /* Small phones */
 @media (max-width:390px) {
   .map-controls { right:8px; top:8px; }
-  .satellite-toggle { left:8px; bottom:72px; }
+  .satellite-toggle { left:8px; bottom:calc(68px + env(safe-area-inset-bottom, 0px)); }
   .mbb-tab { padding:6px 8px; min-width:48px; font-size:9px; }
   .mobile-sheet .sheet-header { padding:2px 12px 8px; }
 }
@@ -7326,6 +7329,7 @@ function showDriveButton() {
       summary.textContent = `${stopCount} stop${stopCount!==1?'s':''} · Route ready`;
     }
     bar.style.display = '';
+    document.body.classList.add('route-bar-active');
     // Push tab bar down slightly
     document.getElementById('mobile-bottom-bar').style.zIndex = '19';
   }
@@ -7337,10 +7341,12 @@ function hideDriveButton() {
   // Hide mobile route bar
   const bar = document.getElementById('mobile-route-bar');
   if (bar) bar.style.display = 'none';
+  document.body.classList.remove('route-bar-active');
 }
 
 function closeMobileRouteBar() {
   document.getElementById('mobile-route-bar').style.display = 'none';
+  document.body.classList.remove('route-bar-active');
 }
 
 function mobileOpenGoogleMaps() {
