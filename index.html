@@ -357,11 +357,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       transparent 21px, transparent 40px
     ),
     /* Left binding red margin line */
-    linear-gradient(to right, transparent 52px, #e8a0a0 52px, #e8a0a0 54px, transparent 54px),
-    /* Ruled lines */
-    repeating-linear-gradient(transparent, transparent 31px, #C8C0B0 31px, #C8C0B0 32px);
-  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
-    0 0, 0 0, 0 40px;
+    linear-gradient(to right, transparent 52px, #e8a0a0 52px, #e8a0a0 54px, transparent 54px);
 }
 [data-theme="dark"] .planner-paper, [data-theme="gray"] .planner-paper {
   background-color: #2a2820;
@@ -381,10 +377,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       rgba(100,90,70,0.3) 19px, rgba(100,90,70,0.3) 21px,
       transparent 21px, transparent 40px
     ),
-    linear-gradient(to right, transparent 52px, rgba(180,80,80,0.4) 52px, rgba(180,80,80,0.4) 54px, transparent 54px),
-    repeating-linear-gradient(transparent, transparent 31px, var(--planner-line) 31px, var(--planner-line) 32px);
-  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
-    0 0, 0 0, 0 40px;
+    linear-gradient(to right, transparent 52px, rgba(180,80,80,0.4) 52px, rgba(180,80,80,0.4) 54px, transparent 54px);
 }
 .planner-paper-date {
   font-size:22px; font-weight:300; color:var(--orange); margin-bottom:8px;
@@ -399,6 +392,14 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   font-size:15px; line-height:32px; resize:none; outline:none; min-height:200px; max-height:none;
   font-family: 'Georgia', 'Times New Roman', serif; flex:1;
   caret-color: var(--orange);
+  background-image: repeating-linear-gradient(transparent, transparent 31px, #C8C0B0 31px, #C8C0B0 32px);
+  background-size: 100% 32px;
+  background-attachment: local;
+}
+[data-theme="dark"] .planner-textarea, [data-theme="gray"] .planner-textarea {
+  background-image: repeating-linear-gradient(transparent, transparent 31px, var(--planner-line) 31px, var(--planner-line) 32px);
+  background-size: 100% 32px;
+  background-attachment: local;
 }
 .planner-textarea::placeholder { color:var(--text-muted); font-style:italic; }
 #notes-pagination { margin-top:auto; }
