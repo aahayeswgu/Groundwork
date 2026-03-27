@@ -4404,12 +4404,7 @@ function updateInboxCount() {
 
 function renderEmailList() {
   const list = document.getElementById('email-list');
-  // Apply category filter
-  let msgs = gmailMessages;
-  if (gmailCategoryFilter && gmailCategoryFilter !== 'all') {
-    const catLabel = 'CATEGORY_' + gmailCategoryFilter.toUpperCase();
-    msgs = gmailMessages.filter(m => (m.labelIds || []).includes(catLabel));
-  }
+  const msgs = gmailMessages;
   if (!msgs.length) { list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:13px;">No messages found.</div>'; return; }
   list.innerHTML = msgs.map(m => {
     const fromRaw = (m.from||'').replace(/<.*>/,'').trim();
@@ -4453,17 +4448,18 @@ function formatEmailDate(ds) {
 }
 
 function gmailSwitchFolder(f) {
-  gmailCurrentFolder = f; gmailSearchQuery = '';
+  gmailCurrentFolder = f; gmailSearchQuery = ''; gmailCategoryFilter = 'all';
   document.getElementById('email-search-input').value = '';
   document.getElementById('email-search-clear').style.display = 'none';
   document.querySelectorAll('.email-folder').forEach(el => el.classList.toggle('active', el.dataset.folder===f));
+  document.querySelectorAll('.email-cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === 'all'));
   document.getElementById('email-reader').style.display = 'none';
   document.getElementById('email-reader-empty').style.display = '';
   gmailRefresh();
 }
 
 function gmailSearch() { const q=document.getElementById('email-search-input').value.trim(); if(!q){gmailClearSearch();return;} gmailSearchQuery=q; document.getElementById('email-search-clear').style.display=''; gmailRefresh(); }
-function gmailClearSearch() { gmailSearchQuery=''; document.getElementById('email-search-input').value=''; document.getElementById('email-search-clear').style.display='none'; gmailRefresh(); }
+function gmailClearSearch() { gmailSearchQuery=''; gmailCategoryFilter='all'; document.getElementById('email-search-input').value=''; document.getElementById('email-search-clear').style.display='none'; document.querySelectorAll('.email-cat-tab').forEach(t=>t.classList.toggle('active',t.dataset.cat==='all')); gmailRefresh(); }
 function gmailLoadMore() { if(gmailNextPageToken) gmailRefresh(true); }
 
 function gmailToggleSelect(id,checked) { if(checked) gmailSelectedIds.add(id); else gmailSelectedIds.delete(id); updateBulkBar(); }
@@ -4534,11 +4530,20 @@ async function gmailToggleStar(msgId){const m=gmailMessages.find(x=>x.id===msgId
 async function gmailTrash(msgId){if(!confirm('Move this email to trash?'))return;await gmailApiFetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${msgId}/trash`,{method:'POST'});toast('Moved to trash.');gmailMessages=gmailMessages.filter(m=>m.id!==msgId);renderEmailList();document.getElementById('email-reader').style.display='none';document.getElementById('email-reader-empty').style.display='';}
 async function gmailArchiveMsg(msgId){await gmailApiFetch(`https://www.googleapis.com/gmail/v1/users/me/messages/${msgId}/modify`,{method:'POST',body:JSON.stringify({removeLabelIds:['INBOX']})});toast('Archived.');if(gmailCurrentFolder==='INBOX'){gmailMessages=gmailMessages.filter(m=>m.id!==msgId);renderEmailList();}document.getElementById('email-reader').style.display='none';document.getElementById('email-reader-empty').style.display='';}
 
-// Gmail category filter
+// Gmail category filter — queries server-side, not client-side
 function gmailFilterCategory(cat) {
   gmailCategoryFilter = cat;
   document.querySelectorAll('.email-cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
-  renderEmailList();
+  
+  // Use Gmail's category: search operator for server-side filtering
+  if (cat === 'all') {
+    gmailSearchQuery = '';
+  } else {
+    // Gmail search operators: category:primary, category:social, category:promotions, category:updates
+    gmailSearchQuery = 'category:' + cat;
+  }
+  document.getElementById('email-search-input').value = cat === 'all' ? '' : 'category:' + cat;
+  gmailRefresh();
 }
 
 // Inline star toggle (from list row, no reload of reader)
@@ -7475,6 +7480,7 @@ let scoutProspects = [];
 let scoutCurrentIndex = 0;
 let scoutRecognition = null;
 let scoutOverlay = null;
+let scoutRadius = 800; // Start at ~0.5 mile, can extend to 1600 then 3200
 
 function toggleScoutMode() {
   if (scoutActive) { endScoutMode(); return; }
@@ -7513,23 +7519,22 @@ async function startScoutMode() {
     return;
   }
   
-  showScoutOverlay('Scanning for prospects...', 'Searching within half a mile');
+  showScoutOverlay('Scanning for prospects...', `Searching within ${scoutRadius <= 800 ? 'half a mile' : scoutRadius <= 1600 ? '1 mile' : '2 miles'}`);
   
-  // Search for businesses nearby using Google Places — 800m (~0.5 mile) radius
-  const SCOUT_RADIUS = 800;
+  // Search for businesses nearby using Google Places
   const searchPromises = [
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'contractor'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'construction company'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'electrician'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'plumber plumbing'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'HVAC'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'manufacturing'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'welding fabrication'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'machine shop'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'roofing company'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'fencing company'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'concrete paving'),
-    placesNearbySearch(gpsPos, SCOUT_RADIUS, 'landscape company'),
+    placesNearbySearch(gpsPos, scoutRadius, 'contractor'),
+    placesNearbySearch(gpsPos, scoutRadius, 'construction company'),
+    placesNearbySearch(gpsPos, scoutRadius, 'electrician'),
+    placesNearbySearch(gpsPos, scoutRadius, 'plumber plumbing'),
+    placesNearbySearch(gpsPos, scoutRadius, 'HVAC'),
+    placesNearbySearch(gpsPos, scoutRadius, 'manufacturing'),
+    placesNearbySearch(gpsPos, scoutRadius, 'welding fabrication'),
+    placesNearbySearch(gpsPos, scoutRadius, 'machine shop'),
+    placesNearbySearch(gpsPos, scoutRadius, 'roofing company'),
+    placesNearbySearch(gpsPos, scoutRadius, 'fencing company'),
+    placesNearbySearch(gpsPos, scoutRadius, 'concrete paving'),
+    placesNearbySearch(gpsPos, scoutRadius, 'landscape company'),
   ];
   
   const allResults = [];
@@ -7572,9 +7577,18 @@ async function startScoutMode() {
   scoutProspects = filtered;
   
   if (scoutProspects.length === 0) {
-    speak('No new prospects found within half a mile. Try again in a different area.');
-    showScoutOverlay('No prospects found', 'No new businesses within half a mile. Keep driving!');
-    setTimeout(endScoutMode, 5000);
+    // Offer to extend radius
+    if (scoutRadius < 3200) {
+      const nextRadius = scoutRadius <= 800 ? 1600 : 3200;
+      const nextLabel = nextRadius === 1600 ? '1 mile' : '2 miles';
+      const currentLabel = scoutRadius <= 800 ? 'half a mile' : '1 mile';
+      speak(`No new prospects within ${currentLabel}. Want me to extend to ${nextLabel}?`);
+      showScoutOverlayExtend(currentLabel, nextLabel, nextRadius, gpsPos);
+    } else {
+      speak('No new prospects found within 2 miles. Try again in a different area.');
+      showScoutOverlay('No prospects found', 'No new businesses within 2 miles. Keep driving!');
+      setTimeout(endScoutMode, 5000);
+    }
     return;
   }
   
@@ -7612,9 +7626,24 @@ function placesNearbySearch(location, radius, keyword) {
 
 function announceScoutProspect() {
   if (!scoutActive || scoutCurrentIndex >= scoutProspects.length) {
-    speak('No more prospects in this area. Scout mode ending.');
-    showScoutOverlay('Scouting complete', `Reviewed ${scoutCurrentIndex} prospect${scoutCurrentIndex !== 1 ? 's' : ''}`);
-    setTimeout(endScoutMode, 3000);
+    // All prospects reviewed at this radius — offer extension
+    if (scoutRadius < 3200) {
+      const nextRadius = scoutRadius <= 800 ? 1600 : 3200;
+      const nextLabel = nextRadius === 1600 ? '1 mile' : '2 miles';
+      const currentLabel = scoutRadius <= 800 ? 'half a mile' : (scoutRadius <= 1600 ? '1 mile' : '2 miles');
+      speak(`That's all ${scoutCurrentIndex} prospects within ${currentLabel}. Want me to extend to ${nextLabel}?`);
+      // Get fresh GPS for extend
+      navigator.geolocation.getCurrentPosition(pos => {
+        showScoutOverlayExtend(currentLabel, nextLabel, nextRadius, { lat: pos.coords.latitude, lng: pos.coords.longitude });
+      }, () => {
+        showScoutOverlay('Scouting complete', `Reviewed ${scoutCurrentIndex} prospect${scoutCurrentIndex !== 1 ? 's' : ''}`);
+        setTimeout(endScoutMode, 4000);
+      }, { enableHighAccuracy: true, timeout: 5000 });
+    } else {
+      speak('No more prospects within 2 miles. Scout mode ending.');
+      showScoutOverlay('Scouting complete', `Reviewed ${scoutCurrentIndex} prospect${scoutCurrentIndex !== 1 ? 's' : ''} up to 2 miles`);
+      setTimeout(endScoutMode, 4000);
+    }
     return;
   }
   
@@ -7811,6 +7840,7 @@ function endScoutMode() {
   scoutActive = false;
   scoutProspects = [];
   scoutCurrentIndex = 0;
+  scoutRadius = 800; // Reset for next time
   
   if (scoutRecognition) { try { scoutRecognition.abort(); } catch(e) {} scoutRecognition = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -7821,6 +7851,145 @@ function endScoutMode() {
   const mapBtn = document.getElementById('btn-scout');
   if (navBtn) navBtn.classList.remove('scouting');
   if (mapBtn) mapBtn.classList.remove('scouting');
+}
+
+function showScoutOverlayExtend(currentLabel, nextLabel, nextRadius, gpsPos) {
+  if (scoutOverlay) scoutOverlay.remove();
+  
+  const el = document.createElement('div');
+  el.className = 'scout-toast';
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
+      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8B5CF6;">Scout Mode</span>
+    </div>
+    <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.3;">No prospects within ${currentLabel}</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:6px;">Extend search to ${nextLabel}?</div>
+    <div style="display:flex;gap:10px;margin-top:16px;justify-content:center;">
+      <button onclick="extendScoutRadius(${nextRadius})" style="padding:10px 24px;border:none;border-radius:10px;background:#8B5CF6;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Yes, extend</button>
+      <button onclick="endScoutMode()" style="padding:10px 24px;border:none;border-radius:10px;background:rgba(255,255,255,0.15);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">No, stop</button>
+    </div>
+  `;
+  document.body.appendChild(el);
+  scoutOverlay = el;
+  
+  // Also listen for voice yes/no
+  setTimeout(() => { if (scoutActive) listenForScoutExtendResponse(nextRadius); }, 3000);
+}
+
+function listenForScoutExtendResponse(nextRadius) {
+  if (!scoutActive) return;
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) return;
+  
+  scoutRecognition = new SpeechRec();
+  scoutRecognition.continuous = false;
+  scoutRecognition.interimResults = false;
+  scoutRecognition.lang = 'en-US';
+  
+  scoutRecognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript.toLowerCase().trim();
+    if (transcript.match(/\b(yes|yeah|yep|sure|extend|do it)\b/)) {
+      extendScoutRadius(nextRadius);
+    } else if (transcript.match(/\b(no|nope|nah|stop|end|cancel)\b/)) {
+      endScoutMode();
+    } else {
+      speak('Say yes to extend, or no to stop.');
+      setTimeout(() => { if (scoutActive) listenForScoutExtendResponse(nextRadius); }, 2000);
+    }
+  };
+  
+  scoutRecognition.onerror = () => {};
+  try { scoutRecognition.start(); } catch(e) {}
+}
+
+async function extendScoutRadius(newRadius) {
+  scoutRadius = newRadius;
+  scoutProspects = [];
+  scoutCurrentIndex = 0;
+  
+  // Re-run the full scout search with the new radius
+  speak(`Extending search to ${newRadius <= 1600 ? '1 mile' : '2 miles'}.`);
+  
+  // Need fresh GPS
+  let gpsPos;
+  try {
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000 }));
+    gpsPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  } catch(e) {
+    speak('Could not get your location.');
+    endScoutMode();
+    return;
+  }
+  
+  showScoutOverlay('Extending search...', `Scanning within ${newRadius <= 1600 ? '1 mile' : '2 miles'}`);
+  
+  const searchPromises = [
+    placesNearbySearch(gpsPos, scoutRadius, 'contractor'),
+    placesNearbySearch(gpsPos, scoutRadius, 'construction company'),
+    placesNearbySearch(gpsPos, scoutRadius, 'electrician'),
+    placesNearbySearch(gpsPos, scoutRadius, 'plumber plumbing'),
+    placesNearbySearch(gpsPos, scoutRadius, 'HVAC'),
+    placesNearbySearch(gpsPos, scoutRadius, 'manufacturing'),
+    placesNearbySearch(gpsPos, scoutRadius, 'welding fabrication'),
+    placesNearbySearch(gpsPos, scoutRadius, 'machine shop'),
+    placesNearbySearch(gpsPos, scoutRadius, 'roofing company'),
+    placesNearbySearch(gpsPos, scoutRadius, 'fencing company'),
+    placesNearbySearch(gpsPos, scoutRadius, 'concrete paving'),
+    placesNearbySearch(gpsPos, scoutRadius, 'landscape company'),
+  ];
+  
+  const allResults = [];
+  const searchResults = await Promise.allSettled(searchPromises);
+  searchResults.forEach(r => { if (r.status === 'fulfilled' && r.value) allResults.push(...r.value); });
+  
+  const seen = new Set();
+  const unique = [];
+  for (const r of allResults) {
+    const key = r.place_id || (r.name + r.lat);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(r);
+  }
+  
+  const filtered = unique.filter(r => {
+    if (EXCLUDED_CHAINS.test(r.name)) return false;
+    if (EXCLUDED_NAME_PATTERNS.test(r.name)) return false;
+    const alreadyPinned = pins.some(p => 
+      (p.placeId && p.placeId === r.place_id) ||
+      (p.title.toLowerCase() === r.name.toLowerCase()) ||
+      (Math.abs(p.lat - r.lat) < 0.0005 && Math.abs(p.lng - r.lng) < 0.0005)
+    );
+    return !alreadyPinned;
+  });
+  
+  filtered.sort((a, b) => {
+    const ratingDiff = (b.rating || 0) - (a.rating || 0);
+    if (Math.abs(ratingDiff) > 0.5) return ratingDiff;
+    const dA = haversineDistance(gpsPos.lat, gpsPos.lng, a.lat, a.lng);
+    const dB = haversineDistance(gpsPos.lat, gpsPos.lng, b.lat, b.lng);
+    return dA - dB;
+  });
+  
+  scoutProspects = filtered;
+  
+  if (scoutProspects.length === 0) {
+    if (scoutRadius < 3200) {
+      const nr = scoutRadius <= 1600 ? 3200 : 3200;
+      const nl = '2 miles';
+      const cl = scoutRadius <= 1600 ? '1 mile' : '2 miles';
+      speak(`Still no prospects within ${cl}. Want me to extend to ${nl}?`);
+      showScoutOverlayExtend(cl, nl, nr, gpsPos);
+    } else {
+      speak('No prospects found within 2 miles. Try a different area.');
+      showScoutOverlay('No prospects found', 'Searched up to 2 miles. Keep driving!');
+      setTimeout(endScoutMode, 5000);
+    }
+    return;
+  }
+  
+  speak(`Found ${scoutProspects.length} prospect${scoutProspects.length > 1 ? 's' : ''} within ${scoutRadius <= 1600 ? '1 mile' : '2 miles'}.`);
+  setTimeout(() => announceScoutProspect(), 2000);
 }
 
 // ═══════════════════════════════════════
