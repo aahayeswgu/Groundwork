@@ -5760,6 +5760,15 @@ function addRouteStopNumbers(waypoints, optimizedOrder) {
     const m = new google.maps.Marker({ position: waypoints[waypoints.length-1], map, icon: createMarkerIcon('#1A1A1A', 28, 'H'), zIndex: 1000 });
     routeStopMarkers.push({ marker: m, originalIcon: null, isTemp: true });
   }
+  
+  // Make all numbered stop markers clickable — zoom in on click
+  routeStopMarkers.forEach(({ marker }) => {
+    marker.addListener('click', () => {
+      const pos = marker.getPosition();
+      map.panTo(pos);
+      map.setZoom(16);
+    });
+  });
 }
 
 // ═══════════════════════════════════════
@@ -6743,6 +6752,7 @@ async function startNavigation(routeInfo, destLabel) {
   collapseSidebar(); hideDriveButton(); initStopProgress();
   const satBtn = document.getElementById('satellite-toggle-btn'); if (satBtn) satBtn.style.display = 'none';
   const mapCtrls = document.querySelector('.map-controls'); if (mapCtrls) mapCtrls.style.display = 'none';
+  hideMarathonStopList();
   document.getElementById('nav-instruction').textContent = 'Getting your location...';
   document.getElementById('nav-street').textContent = '';
   document.getElementById('nav-step-dist').textContent = '';
@@ -9523,10 +9533,13 @@ async function routeMarathonArea(index) {
   // Show marathon indicator
   showMarathonIndicator();
   
+  // Show floating stop list for review/reorder
+  showMarathonStopList();
+  
   // DON'T auto-start navigation — let user review the route first
   if (routeInfo) {
     const traffic = routeInfo.minsTraffic && routeInfo.minsTraffic !== routeInfo.mins ? ` (${routeInfo.minsTraffic} w/ traffic)` : '';
-    toast(`Area ${index + 1}: ${route.stopCount} stops — ${routeInfo.miles} mi, ~${routeInfo.mins} min${traffic}. Tap Start Driving when ready.`);
+    toast(`Area ${index + 1}: ${route.stopCount} stops — ${routeInfo.miles} mi, ~${routeInfo.mins} min${traffic}. Review stops, then Start Driving.`);
     showDriveButton();
   } else {
     toast(`Area ${index + 1} mapped: ${route.stopCount} stops`);
@@ -9612,6 +9625,128 @@ function showMarathonIndicator() {
   strip.style.display = 'flex';
 }
 
+// Floating marathon stop list — shows all areas, current expanded with reorderable stops
+function showMarathonStopList() {
+  hideMarathonStopList();
+  if (!marathonActive || !marathonQueue.length) return;
+  
+  const panel = document.createElement('div');
+  panel.id = 'marathon-stop-list';
+  panel.style.cssText = 'position:absolute;top:12px;left:12px;z-index:19;width:280px;max-height:calc(100vh - 160px);background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);overflow:hidden;display:flex;flex-direction:column;font-family:DM Sans,sans-serif;';
+  
+  let html = `<div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:13px;font-weight:700;color:var(--text-primary);">Marathon Stops</span>
+    <button onclick="hideMarathonStopList()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;padding:2px 6px;">✕</button>
+  </div>
+  <div style="overflow-y:auto;flex:1;">`;
+  
+  marathonQueue.forEach((area, aIdx) => {
+    const isCurrent = aIdx === marathonCurrentIndex;
+    const areaColor = isCurrent ? 'var(--green)' : 'var(--text-muted)';
+    html += `<div style="border-bottom:1px solid var(--border);">
+      <div onclick="${isCurrent ? '' : `jumpToMarathonArea(${aIdx})`}" style="padding:8px 14px;display:flex;align-items:center;gap:8px;cursor:${isCurrent ? 'default' : 'pointer'};background:${isCurrent ? 'rgba(34,197,94,0.08)' : 'transparent'};">
+        <div style="width:22px;height:22px;border-radius:50%;background:${areaColor};color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">${aIdx+1}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:700;color:${isCurrent ? 'var(--green)' : 'var(--text-primary)'};">${area.name || 'Area '+(aIdx+1)}</div>
+          <div style="font-size:10px;color:var(--text-muted);">${area.stopCount} stop${area.stopCount!==1?'s':''}</div>
+        </div>
+        ${!isCurrent ? `<span style="font-size:10px;color:var(--text-muted);">tap to view</span>` : ''}
+      </div>`;
+    
+    // Show stops for current area
+    if (isCurrent && area.stops) {
+      html += `<div id="marathon-area-stops" style="padding:4px 8px 8px;">`;
+      area.stops.forEach((stop, sIdx) => {
+        html += `<div class="marathon-stop-row" draggable="true" data-stop-idx="${sIdx}" onclick="panToMarathonStop(${marathonCurrentIndex},${sIdx})" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background 0.1s;margin-bottom:2px;" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='transparent'">
+          <div style="width:20px;height:20px;border-radius:50%;background:var(--orange);color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:grab;">${sIdx+1}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(stop.name)}</div>
+            ${stop.address ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(stop.address)}</div>` : ''}
+          </div>
+        </div>`;
+      });
+      html += `<button onclick="rerouteMarathonArea()" style="width:100%;margin-top:6px;padding:8px;border:1px solid var(--orange);border-radius:6px;background:transparent;color:var(--orange);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.background='var(--orange)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--orange)'">Reroute with new order</button>`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+  });
+  
+  html += `</div>`;
+  panel.innerHTML = html;
+  document.getElementById('map-area').appendChild(panel);
+  
+  // Enable drag-to-reorder for current area stops
+  initMarathonStopDrag();
+}
+
+function hideMarathonStopList() {
+  const existing = document.getElementById('marathon-stop-list');
+  if (existing) existing.remove();
+}
+
+function panToMarathonStop(areaIdx, stopIdx) {
+  const area = marathonQueue[areaIdx];
+  if (!area || !area.stops[stopIdx]) return;
+  const stop = area.stops[stopIdx];
+  map.panTo({ lat: stop.lat, lng: stop.lng });
+  map.setZoom(16);
+}
+
+function jumpToMarathonArea(areaIdx) {
+  if (areaIdx === marathonCurrentIndex) return;
+  // Just preview — pan to that area's centroid
+  const area = marathonQueue[areaIdx];
+  if (!area || !area.stops.length) return;
+  let sumLat = 0, sumLng = 0;
+  area.stops.forEach(s => { sumLat += s.lat; sumLng += s.lng; });
+  map.panTo({ lat: sumLat / area.stops.length, lng: sumLng / area.stops.length });
+  map.setZoom(13);
+  toast(`Previewing ${area.name || 'Area '+(areaIdx+1)} — ${area.stopCount} stops. Switch to this area with "Next Area".`);
+}
+
+async function rerouteMarathonArea() {
+  toast('Rerouting with new stop order...');
+  await routeMarathonArea(marathonCurrentIndex);
+}
+
+function initMarathonStopDrag() {
+  const container = document.getElementById('marathon-area-stops');
+  if (!container) return;
+  
+  let dragIdx = null;
+  
+  container.querySelectorAll('.marathon-stop-row').forEach(row => {
+    row.addEventListener('dragstart', e => {
+      dragIdx = parseInt(row.dataset.stopIdx);
+      row.style.opacity = '0.4';
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', () => { row.style.opacity = '1'; });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      row.style.borderTop = '2px solid var(--orange)';
+    });
+    row.addEventListener('dragleave', () => { row.style.borderTop = ''; });
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      row.style.borderTop = '';
+      const dropIdx = parseInt(row.dataset.stopIdx);
+      if (dragIdx === null || dragIdx === dropIdx) return;
+      
+      // Reorder the stops in the current marathon area
+      const area = marathonQueue[marathonCurrentIndex];
+      if (!area || !area.stops) return;
+      const [moved] = area.stops.splice(dragIdx, 1);
+      area.stops.splice(dropIdx, 0, moved);
+      
+      // Rebuild the stop list UI
+      showMarathonStopList();
+      toast('Stop order updated. Tap "Reroute" to recalculate.');
+    });
+  });
+}
+
 // skipMarathonArea is same as advanceMarathon — kept as alias
 async function skipMarathonArea() { return advanceMarathon(); }
 
@@ -9641,11 +9776,11 @@ function endMarathon() {
   marathonBuildMode = false;
   marathonTargetCount = 0;
   
-  // Hide inline marathon strip
+  // Hide marathon UI
   const strip = document.getElementById('marathon-nav-strip');
   if (strip) strip.style.display = 'none';
+  hideMarathonStopList();
   
-  // Remove legacy floating indicator if somehow still around
   const indicator = document.getElementById('marathon-indicator');
   if (indicator) indicator.remove();
   
