@@ -3785,7 +3785,7 @@ function showPinInfoWindow(id) {
           <button onclick="infoWindow.close();currentInfoWindowPinId=null;openEditPin('${pin.id}')" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:7px 10px;border-radius:6px;border:1.5px solid #D4712A;background:transparent;color:#D4712A;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#D4712A';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#D4712A'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
           <button onclick="quickDeletePin('${pin.id}')" style="display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border-radius:6px;border:1.5px solid #EF4444;background:transparent;color:#EF4444;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'" title="Delete pin"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
-        <button onclick="askClaudeAboutBusiness('${escHtml(pin.title).replace(/'/g,"\\'")}','${escHtml(pin.address||'').replace(/'/g,"\\'")}')" style="width:100%;margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#4285F4'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Ask AI</button>
+        <button onclick="askGeminiAboutBusiness('${escHtml(pin.title).replace(/'/g,"\\'")}','${escHtml(pin.address||'').replace(/'/g,"\\'")}')" style="width:100%;margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#4285F4'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Ask AI</button>
         <div style="margin-top:6px;text-align:center;">
           <a href="${gmapsLink}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#4285F4;font-weight:600;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4285F4" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -5857,7 +5857,7 @@ function openCardDetail(cardId) {
               Pin
             </button>
           </div>
-          <button onclick="askClaudeAboutBusiness('${escHtml(card.name || card.company || 'Unknown').replace(/'/g,"\\'")}','${escHtml((card.company || '') + (card.trade ? ' · ' + card.trade : '')).replace(/'/g,"\\'")}')" style="width:100%;margin-top:10px;padding:12px;border:1.5px solid #4285F4;border-radius:10px;background:transparent;color:#4285F4;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#4285F4'">
+          <button onclick="askGeminiAboutBusiness('${escHtml(card.name || card.company || 'Unknown').replace(/'/g,"\\'")}','${escHtml((card.company || '') + (card.trade ? ' · ' + card.trade : '')).replace(/'/g,"\\'")}')" style="width:100%;margin-top:10px;padding:12px;border:1.5px solid #4285F4;border-radius:10px;background:transparent;color:#4285F4;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#4285F4'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             Ask AI — Sales Brief
           </button>
@@ -6985,7 +6985,7 @@ function buildDiscoverInfoHtml(b, index) {
         ${pinBtnHtml}
       </div>
       ${planBtnHtml}
-      <button onclick="askClaudeAboutBusiness('${escHtml(b.name).replace(/'/g,"\\'")}','${escHtml(b.address||b.type||'').replace(/'/g,"\\'")}')" style="width:100%;margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#4285F4'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Ask AI</button>
+      <button onclick="askGeminiAboutBusiness('${escHtml(b.name).replace(/'/g,"\\'")}','${escHtml(b.address||b.type||'').replace(/'/g,"\\'")}')" style="width:100%;margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#4285F4'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Ask AI</button>
     </div>
   </div>`;
 }
@@ -8653,7 +8653,7 @@ function showScoutOverlay(title, subtitle, current, total, address) {
       <button onclick="handleScoutYes()" style="padding:18px 48px;border:none;border-radius:16px;background:#22C55E;color:#fff;font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;min-width:160px;">✓ Yes</button>
       <button onclick="handleScoutNo()" style="padding:18px 48px;border:none;border-radius:16px;background:rgba(255,255,255,0.12);color:#fff;font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;min-width:160px;">✕ Next</button>
     </div>
-    <button onclick="askClaudeAboutBusiness('${escHtml(title).replace(/'/g,"\\'")}','${escHtml(address||'').replace(/'/g,"\\'")}');event.stopPropagation();" style="margin-top:14px;padding:12px 32px;border:1.5px solid rgba(255,255,255,0.3);border-radius:12px;background:transparent;color:rgba(255,255,255,0.8);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
+    <button onclick="askGeminiAboutBusiness('${escHtml(title).replace(/'/g,"\\'")}','${escHtml(address||'').replace(/'/g,"\\'")}');event.stopPropagation();" style="margin-top:14px;padding:12px 32px;border:1.5px solid rgba(255,255,255,0.3);border-radius:12px;background:transparent;color:rgba(255,255,255,0.8);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       Ask AI before deciding
     </button>` : '';
@@ -11260,14 +11260,13 @@ function endMarathon() {
 // ═══════════════════════════════════════
 // ASK AI — Gemini business research
 // ═══════════════════════════════════════
-// Get your free key at https://aistudio.google.com (free tier: 1,500 req/day)
+// Gemini AI — proxied via /api/gemini (key stored in Vercel env vars)
 // Ask AI is proxied through /api/gemini — key is server-side only
-const GEMINI_API_KEY = null; // not used client-side
 const GEMINI_URL = '/api/gemini';
 
 let _lastAiResult = '';
 
-async function askClaudeAboutBusiness(name, address) {
+async function askGeminiAboutBusiness(name, address) {
   // Show modal immediately
   document.getElementById('ask-ai-modal').classList.add('active');
   document.getElementById('ask-ai-business-name').textContent = name;
@@ -11277,12 +11276,7 @@ async function askClaudeAboutBusiness(name, address) {
   document.getElementById('ask-ai-copy-btn').style.display = 'none';
   _lastAiResult = '';
 
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
-    document.getElementById('ask-ai-loading').style.display = 'none';
-    document.getElementById('ask-ai-error').textContent = 'Gemini API key not configured. Add your free key from aistudio.google.com to GEMINI_API_KEY in the code.';
-    document.getElementById('ask-ai-error').style.display = '';
-    return;
-  }
+
 
   const prompt = `You are a sales intelligence assistant for Gillman Services, a construction staffing company in Tampa, FL. 
 A field sales rep is standing near this business and wants a quick briefing before walking in.
