@@ -235,7 +235,7 @@ input, textarea, select { font-family:inherit; font-size:14px; }
   display:flex; align-items:center; justify-content:space-between;
 }
 .panel-title { font-size:16px; font-weight:700; color:var(--text-primary); }
-.panel-body { flex:1; overflow-y:auto; padding:20px; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+.panel-body { flex:1; overflow-y:auto; padding:20px; padding-bottom:calc(20px + env(safe-area-inset-bottom, 0px)); scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
 .panel-body::-webkit-scrollbar { width:5px; }
 .panel-body::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 .field-group { margin-bottom:18px; }
@@ -264,7 +264,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 .status-chip:hover { border-color:var(--text-muted); }
 .status-chip.selected { border-color:var(--orange); background:var(--orange-dim); }
 .status-chip-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.panel-actions { padding:16px 20px; border-top:1px solid var(--border); display:flex; gap:10px; }
+.panel-actions { padding:16px 20px; padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px)); border-top:1px solid var(--border); display:flex; gap:10px; flex-shrink:0; background:var(--bg-card); }
 .btn {
   padding:10px 20px; border-radius:8px; font-size:14px; font-weight:600;
   transition:all 0.2s; display:flex; align-items:center; gap:6px; justify-content:center;
@@ -331,18 +331,71 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 .planner-start-btn.active { background:var(--orange-dim) !important; color:var(--orange) !important; border-color:var(--orange) !important; }
 .planner-page { flex:1; padding:0; position:relative; overflow-y:auto; }
 .planner-paper {
-  min-height:100%; padding:24px 28px;
-  background-image: repeating-linear-gradient(transparent, transparent 31px, var(--planner-line) 31px, var(--planner-line) 32px);
-  background-position-y: 8px;
+  min-height:100%; padding:24px 28px 24px 64px;
+  background-color: #F9F6EF;
+  background-image:
+    /* Punch holes */
+    radial-gradient(circle at 32px 80px, #d8d0c4 7px, transparent 7px),
+    radial-gradient(circle at 32px 80px, #e8e2d8 9px, transparent 9px),
+    radial-gradient(circle at 32px 200px, #d8d0c4 7px, transparent 7px),
+    radial-gradient(circle at 32px 200px, #e8e2d8 9px, transparent 9px),
+    radial-gradient(circle at 32px 320px, #d8d0c4 7px, transparent 7px),
+    radial-gradient(circle at 32px 320px, #e8e2d8 9px, transparent 9px),
+    radial-gradient(circle at 32px 440px, #d8d0c4 7px, transparent 7px),
+    radial-gradient(circle at 32px 440px, #e8e2d8 9px, transparent 9px),
+    radial-gradient(circle at 32px 560px, #d8d0c4 7px, transparent 7px),
+    radial-gradient(circle at 32px 560px, #e8e2d8 9px, transparent 9px),
+    radial-gradient(circle at 32px 680px, #d8d0c4 7px, transparent 7px),
+    radial-gradient(circle at 32px 680px, #e8e2d8 9px, transparent 9px),
+    /* Spiral wire coils */
+    repeating-linear-gradient(
+      transparent, transparent 19px,
+      rgba(160,140,120,0.25) 19px, rgba(160,140,120,0.25) 21px,
+      transparent 21px, transparent 40px
+    ),
+    /* Left binding red margin line */
+    linear-gradient(to right, transparent 52px, #e8a0a0 52px, #e8a0a0 54px, transparent 54px),
+    /* Ruled lines */
+    repeating-linear-gradient(transparent, transparent 31px, #C8C0B0 31px, #C8C0B0 32px);
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
+    0 0, 0 0, 0 40px;
+}
+[data-theme="dark"] .planner-paper, [data-theme="gray"] .planner-paper {
+  background-color: #2a2820;
+  background-image:
+    radial-gradient(circle at 32px 80px, #1a1810 7px, transparent 7px),
+    radial-gradient(circle at 32px 80px, #3a3628 9px, transparent 9px),
+    radial-gradient(circle at 32px 200px, #1a1810 7px, transparent 7px),
+    radial-gradient(circle at 32px 200px, #3a3628 9px, transparent 9px),
+    radial-gradient(circle at 32px 320px, #1a1810 7px, transparent 7px),
+    radial-gradient(circle at 32px 320px, #3a3628 9px, transparent 9px),
+    radial-gradient(circle at 32px 440px, #1a1810 7px, transparent 7px),
+    radial-gradient(circle at 32px 440px, #3a3628 9px, transparent 9px),
+    radial-gradient(circle at 32px 560px, #1a1810 7px, transparent 7px),
+    radial-gradient(circle at 32px 560px, #3a3628 9px, transparent 9px),
+    repeating-linear-gradient(
+      transparent, transparent 19px,
+      rgba(100,90,70,0.3) 19px, rgba(100,90,70,0.3) 21px,
+      transparent 21px, transparent 40px
+    ),
+    linear-gradient(to right, transparent 52px, rgba(180,80,80,0.4) 52px, rgba(180,80,80,0.4) 54px, transparent 54px),
+    repeating-linear-gradient(transparent, transparent 31px, var(--planner-line) 31px, var(--planner-line) 32px);
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0,
+    0 0, 0 0, 0 40px;
 }
 .planner-paper-date {
   font-size:22px; font-weight:300; color:var(--orange); margin-bottom:8px;
   padding-bottom:12px; border-bottom:2px solid var(--orange); font-style:italic; letter-spacing:0.5px;
+  margin-left:-12px;
 }
+.planner-textarea { color:var(--text-primary); }
+[data-theme="light"] .planner-textarea { color:#1a1a1a; }
+[data-theme="light"] .planner-paper-date { color:#B85A1A; border-color:#B85A1A; }
 .planner-textarea {
   width:100%; border:none; background:transparent; color:var(--text-primary);
-  font-size:15px; line-height:32px; resize:vertical; outline:none; min-height:200px; max-height:none;
+  font-size:15px; line-height:32px; resize:none; outline:none; min-height:200px; max-height:none;
   font-family: 'Georgia', 'Times New Roman', serif; flex:1;
+  caret-color: var(--orange);
 }
 .planner-textarea::placeholder { color:var(--text-muted); font-style:italic; }
 .planner-empty-stops { padding:40px 20px; text-align:center; color:var(--text-muted); font-size:13px; }
@@ -603,8 +656,14 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   #sidebar.collapsed { transform:translateX(-100%) !important; margin-right:0 !important; }
   .sidebar-toggle { display:none; }
 
-  /* Pin panel responsive */
-  #pin-panel { width:100%; }
+  /* Pin panel — slides up from bottom on mobile, map stays visible */
+  #pin-panel {
+    width:100%; top:auto; bottom:0; height:88vh;
+    transform:translateY(100%); border-radius:16px 16px 0 0;
+    box-shadow:0 -8px 32px rgba(0,0,0,0.3);
+  }
+  #pin-panel.open { transform:translateY(0); }
+  #pin-panel-handle { display:block !important; }
 
   /* Planner responsive */
   #planner-view { flex-direction:column; }
@@ -635,6 +694,9 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   /* Hide bottom bar during navigation */
   body.nav-active .mobile-bottom-bar { display:none !important; }
   body.nav-active .mobile-sheet { display:none !important; }
+
+  /* Route FABs above tab bar on mobile */
+  #route-action-fabs { bottom:calc(68px + env(safe-area-inset-bottom, 0px)) !important; }
 
   /* Satellite toggle above bottom bar */
   .satellite-toggle { bottom:72px; }
@@ -1370,6 +1432,10 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 
     <!-- PIN DETAIL PANEL -->
     <div id="pin-panel">
+      <!-- Mobile drag handle -->
+      <div id="pin-panel-handle" style="display:none;padding:10px 0 4px;text-align:center;cursor:grab;flex-shrink:0;" ontouchstart="pinPanelDragStart(event)" ontouchmove="pinPanelDragMove(event)" ontouchend="pinPanelDragEnd(event)">
+        <div style="width:36px;height:4px;border-radius:2px;background:var(--border);margin:0 auto;pointer-events:none;"></div>
+      </div>
       <div class="panel-header">
         <span class="panel-title" id="panel-title">New Pin</span>
         <button class="icon-btn" onclick="closePanel()">
@@ -2232,6 +2298,41 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   <div style="position:absolute;bottom:0;left:0;right:0;padding:20px;display:flex;justify-content:center;gap:16px;background:linear-gradient(transparent, rgba(0,0,0,0.8));">
     <button onclick="cancelCrop()" style="padding:14px 32px;background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);">Cancel</button>
     <button onclick="confirmCrop()" style="padding:14px 40px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(212,113,42,0.4);">Crop & Save</button>
+  </div>
+</div>
+
+<!-- MARATHON COUNT MODAL -->
+<div class="modal-overlay" id="marathon-count-modal">
+  <div class="modal" style="max-width:340px;">
+    <div class="modal-header">
+      <h3 style="display:flex;align-items:center;gap:8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Marathon Mode
+      </h3>
+      <button class="icon-btn" onclick="cancelMarathonModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:16px;" id="marathon-modal-desc">How many areas do you want to target? You'll draw a box for each area, select businesses, and run all routes in sequence.</p>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button onclick="adjustMarathonCount(-1)" style="width:44px;height:44px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">−</button>
+        <div style="flex:1;text-align:center;">
+          <div id="marathon-count-display" style="font-size:48px;font-weight:800;color:var(--orange);line-height:1;">2</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">areas</div>
+        </div>
+        <button onclick="adjustMarathonCount(1)" style="width:44px;height:44px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">+</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;padding:0 8px;">
+        <span style="font-size:11px;color:var(--text-muted);">min 2</span>
+        <span style="font-size:11px;color:var(--text-muted);">max 10</span>
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="cancelMarathonModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmMarathonModal()" style="background:var(--green);min-width:120px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Start
+      </button>
+    </div>
   </div>
 </div>
 
@@ -3612,7 +3713,15 @@ function addMarkerToMap(pin) {
     icon: createMarkerIcon(status.color),
     title: pin.title,
   });
-  m.addListener('click', () => showPinInfoWindow(pin.id));
+  m.addListener('click', () => {
+    if (currentInfoWindowPinId === pin.id && infoWindow.getMap()) {
+      infoWindow.close();
+      currentInfoWindowPinId = null;
+      document.querySelectorAll('.pin-item').forEach(el => el.classList.remove('selected'));
+    } else {
+      showPinInfoWindow(pin.id);
+    }
+  });
   // Hover: highlight marker + scroll sidebar
   m.addListener('mouseover', () => {
     m.setIcon(createMarkerIcon('#F59E0B', 36));
@@ -10344,43 +10453,32 @@ let marathonBuildMode = false;
 let marathonTargetCount = 0;
 
 function openMarathonMode() {
-  // Ask how many routes
-  const countStr = prompt('How many areas do you want to target?\n\nYou\'ll draw a box for each area, select businesses, and run all routes in sequence.', '2');
-  if (!countStr) return;
-  
-  const count = parseInt(countStr);
-  if (isNaN(count) || count < 2 || count > 10) {
-    toast('Enter a number between 2 and 10.');
-    return;
-  }
-  
+  openMarathonCountModal('multi', null);
+}
+
+function _startMarathonBuild(count) {
   // Start marathon build mode
   marathonBuildMode = true;
   marathonTargetCount = count;
   marathonQueue = [];
-  
-  // AUTO-SWITCH TO MAP VIEW: collapse sidebar on mobile, switch to Pins tab
+
+  // AUTO-SWITCH TO MAP VIEW
   const sidebar = document.getElementById('sidebar');
-  if (window.innerWidth <= 768) {
-    sidebar.classList.remove('open');
-  }
+  if (window.innerWidth <= 768) sidebar.classList.remove('open');
   const pinsTab = document.querySelector('.nav-tab[data-view="pins"]');
   if (pinsTab) switchTab(pinsTab, 'pins');
-  
-  // Show the indicator in discover panel
+
   updateMarathonBuildUI();
   updateDiscoverForMarathon();
-  
+
   // Open discover panel
   document.getElementById('discover-panel').style.display = 'block';
   document.getElementById('discover-panel').classList.add('active');
   document.getElementById('disc-step-1').style.display = 'block';
   document.getElementById('disc-step-2').style.display = 'none';
   document.getElementById('disc-step-3').style.display = 'none';
-  
+
   toast(`Marathon Mode: Draw area 1 of ${count}`);
-  
-  // Auto-start drawing
   setTimeout(() => startAreaSelect(), 300);
 }
 
@@ -10404,20 +10502,10 @@ function addToMarathonFromDiscover() {
     return;
   }
   
-  // If not in build mode, start it with 2 routes
+  // If not in build mode, start it
   if (!marathonBuildMode) {
-    const countStr = prompt('How many areas do you want to target?\n\nThis will be area 1. You\'ll draw more areas after.', '2');
-    if (!countStr) return;
-    
-    const count = parseInt(countStr);
-    if (isNaN(count) || count < 2 || count > 10) {
-      toast('Enter a number between 2 and 10.');
-      return;
-    }
-    
-    marathonBuildMode = true;
-    marathonTargetCount = count;
-    marathonQueue = [];
+    openMarathonCountModal('discover', null);
+    return;
   }
   
   // Gather selected businesses as stops (with dedup safety)
@@ -11174,7 +11262,7 @@ function endMarathon() {
 // ═══════════════════════════════════════
 // Get your free key at https://aistudio.google.com (free tier: 1,500 req/day)
 const GEMINI_API_KEY = 'AIzaSyDZgC9K0-l6FhjtgkbHf4CWxVC3ZCJRb48';
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 let _lastAiResult = '';
 
@@ -11414,6 +11502,218 @@ function mobileGeoSearch(q) {
     if (fab && window.innerWidth <= 768) fab.style.display = 'flex';
   });
 })();
+// ═══════════════════════════════════════
+// MARATHON COUNT MODAL
+// ═══════════════════════════════════════
+let _marathonModalCount = 2;
+let _marathonModalMode = 'multi'; // 'multi' or 'discover'
+
+function openMarathonCountModal(mode, _unused) {
+  _marathonModalCount = 2;
+  _marathonModalMode = mode || 'multi';
+  document.getElementById('marathon-count-display').textContent = '2';
+  const desc = document.getElementById('marathon-modal-desc');
+  if (mode === 'discover') {
+    desc.textContent = 'This will be area 1. How many total areas do you want to target? You\'ll add more areas after.';
+  } else {
+    desc.textContent = 'How many areas do you want to target? You\'ll draw a box for each area, select businesses, and run all routes in sequence.';
+  }
+  document.getElementById('marathon-count-modal').classList.add('active');
+}
+
+function adjustMarathonCount(delta) {
+  _marathonModalCount = Math.max(2, Math.min(10, _marathonModalCount + delta));
+  document.getElementById('marathon-count-display').textContent = _marathonModalCount;
+}
+
+function cancelMarathonModal() {
+  document.getElementById('marathon-count-modal').classList.remove('active');
+}
+
+function confirmMarathonModal() {
+  const count = _marathonModalCount;
+  document.getElementById('marathon-count-modal').classList.remove('active');
+
+  if (_marathonModalMode === 'discover') {
+    // Called from addToMarathonFromDiscover — set up build mode then re-run
+    marathonBuildMode = true;
+    marathonTargetCount = count;
+    marathonQueue = [];
+    // Now process the currently selected discover items as area 1
+    _addCurrentDiscoverToMarathon();
+  } else {
+    _startMarathonBuild(count);
+  }
+}
+
+function _addCurrentDiscoverToMarathon() {
+  const stops = [];
+  const stopSeen = new Set();
+  discoverSelected.forEach(i => {
+    const b = discoverResults[i];
+    if (b) {
+      const nameKey = b.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const coordKey = `${Math.round(b.lat*1000)}_${Math.round(b.lng*1000)}`;
+      if (stopSeen.has(nameKey) || stopSeen.has(coordKey)) return;
+      stopSeen.add(nameKey); stopSeen.add(coordKey);
+      stops.push({ pinId:null, name:b.name, address:b.address, lat:b.lat, lng:b.lng });
+    }
+  });
+  const routeNum = marathonQueue.length + 1;
+  marathonQueue.push({ id:'marathon_'+Date.now(), name:`Area ${routeNum}`, stops, stopCount:stops.length });
+  discoverSelected.clear();
+  updateDiscoverCount();
+  updateMarathonBuildUI();
+  if (marathonQueue.length >= marathonTargetCount) {
+    toast(`✓ Area ${routeNum} recorded! All ${marathonTargetCount} areas ready. Click "Start Marathon" to begin.`);
+  } else {
+    toast(`✓ Area ${routeNum} recorded (${stops.length} stops). Draw area ${routeNum+1} of ${marathonTargetCount}.`);
+    discoverResults = []; clearDiscoverMarkers();
+    document.getElementById('disc-step-1').style.display = 'block';
+    document.getElementById('disc-step-2').style.display = 'none';
+    document.getElementById('disc-step-3').style.display = 'none';
+    updateDiscoverForMarathon();
+    setTimeout(() => startAreaSelect(), 500);
+  }
+}
+
+// ═══════════════════════════════════════
+// ROUTE STATE FIXES — Share & Add Leg on mobile
+// ═══════════════════════════════════════
+// Persist route state to sessionStorage so it survives mobile sheet transitions
+const _origShowDriveButton = showDriveButton;
+showDriveButton = function() {
+  _origShowDriveButton();
+  // On mobile, also update the planner sheet buttons to reflect route is ready
+  if (isMobileView()) {
+    const shareBtn = document.querySelector('#mobile-planner-sheet button[onclick*="shareRoute"]');
+    const legBtn = document.querySelector('#mobile-planner-sheet button[onclick*="addRouteLeg"]');
+    if (shareBtn) shareBtn.style.color = 'var(--orange)';
+    if (legBtn) legBtn.style.color = 'var(--green)';
+  }
+};
+
+// ═══════════════════════════════════════
+// DESKTOP: Route stop markers clickable + clear on panel close
+// ═══════════════════════════════════════
+// Make numbered route stop markers open the InfoWindow on desktop click
+const _origAddRouteStopNumbers = addRouteStopNumbers;
+addRouteStopNumbers = function(waypoints, optimizedOrder) {
+  _origAddRouteStopNumbers(waypoints, optimizedOrder);
+  // Wire click handlers on newly created stop markers to open InfoWindow
+  routeStopMarkers.forEach(({ marker, isTemp }) => {
+    if (isTemp) return; // home markers, no pin
+    const pos = marker.getPosition();
+    marker.addListener('click', () => {
+      const pin = pins.find(p => Math.abs(p.lat - pos.lat()) < 0.001 && Math.abs(p.lng - pos.lng()) < 0.001);
+      if (pin) showPinInfoWindow(pin.id);
+      else { map.panTo(pos); map.setZoom(16); }
+    });
+  });
+};
+
+// Clear route line when closing directions or discover panel
+const _origCloseDirections = closeDirections;
+closeDirections = function() {
+  _origCloseDirections();
+  if (routeLine && !navActive) {
+    routeLine.setMap(null); routeLine = null;
+    if (window._routeBorder) { window._routeBorder.setMap(null); window._routeBorder = null; }
+    clearRouteStopMarkers();
+    hideDriveButton();
+    window._lastRouteInfo = null; window._lastRouteWaypoints = null;
+  }
+};
+
+// ═══════════════════════════════════════
+// PIN PANEL — drag-to-dismiss on mobile
+// ═══════════════════════════════════════
+let _ppDragStartY = 0, _ppDragging = false;
+
+function pinPanelDragStart(e) {
+  _ppDragStartY = e.touches[0].clientY;
+  _ppDragging = true;
+  const panel = document.getElementById('pin-panel');
+  panel.style.transition = 'none';
+}
+
+function pinPanelDragMove(e) {
+  if (!_ppDragging) return;
+  const dy = e.touches[0].clientY - _ppDragStartY;
+  if (dy < 0) return; // only allow dragging down
+  const panel = document.getElementById('pin-panel');
+  panel.style.transform = `translateY(${dy}px)`;
+}
+
+function pinPanelDragEnd(e) {
+  if (!_ppDragging) return;
+  _ppDragging = false;
+  const dy = e.changedTouches[0].clientY - _ppDragStartY;
+  const panel = document.getElementById('pin-panel');
+  panel.style.transition = 'transform 0.3s ease';
+  if (dy > 120) {
+    closePanel();
+  } else {
+    panel.style.transform = 'translateY(0)';
+  }
+}
+
+// ═══════════════════════════════════════
+// FIX: Add Leg & Share after mobile routing
+// ═══════════════════════════════════════
+// On mobile, after routeStops() closes the planner sheet to show the map,
+// the route state is set but the sheet buttons don't know it.
+// Override addRouteLeg to also handle when called from mobile planner sheet.
+const _origAddRouteLeg = addRouteLeg;
+addRouteLeg = function() {
+  // Check session storage fallback if in-memory state was lost
+  if (!window._lastRouteWaypoints || window._lastRouteWaypoints.length < 2) {
+    try {
+      const saved = sessionStorage.getItem('gw_last_route');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        window._lastRouteWaypoints = parsed.waypoints;
+        window._lastRouteInfo = parsed.info;
+        window._lastRouteDest = parsed.dest;
+      }
+    } catch(e) {}
+  }
+  _origAddRouteLeg();
+};
+
+// Persist route state to sessionStorage whenever it's set
+const _origShowDriveButton2 = showDriveButton;
+showDriveButton = function() {
+  _origShowDriveButton2();
+  try {
+    if (window._lastRouteWaypoints) {
+      sessionStorage.setItem('gw_last_route', JSON.stringify({
+        waypoints: window._lastRouteWaypoints,
+        info: window._lastRouteInfo,
+        dest: window._lastRouteDest
+      }));
+    }
+  } catch(e) {}
+};
+
+// Restore route state on page focus (handles mobile switching apps)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !window._lastRouteWaypoints) {
+    try {
+      const saved = sessionStorage.getItem('gw_last_route');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        window._lastRouteWaypoints = parsed.waypoints;
+        window._lastRouteInfo = parsed.info;
+        window._lastRouteDest = parsed.dest;
+        if (window._lastRouteWaypoints && window._lastRouteWaypoints.length > 1) {
+          showDriveButton();
+        }
+      }
+    } catch(e) {}
+  }
+});
+
 function sanitizeInput(str) {
   if (!str) return '';
   return str
