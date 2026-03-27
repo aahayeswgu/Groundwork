@@ -489,27 +489,32 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 .email-cat-tab.active { color:var(--orange); border-bottom-color:var(--orange); }
 .email-item-from,.email-item-subject,.email-item-snippet,.email-item-date { display:none; /* legacy classes hidden */ }
 @media (max-width:768px) {
-  #email-left-panel { width:60px; }
-  #email-left-panel .email-folder { padding:10px; justify-content:center; font-size:0; }
-  #email-left-panel .email-folder svg { font-size:initial; }
-  #email-left-panel .email-folder-count { display:none; }
-  #email-tab-folders, #email-tab-cards { font-size:0; padding:10px; }
-  #email-tab-folders svg, #email-tab-cards svg { margin:0; }
-  #email-cards { padding:4px; }
-  .card-item { padding:6px; gap:8px; margin-bottom:4px; }
-  .card-item-img { width:44px; height:28px; }
-  .card-item-name { font-size:11px; }
-  .card-item-company { display:none; }
-  #email-list-pane { max-width:none; flex:1; }
+  /* Email mobile: hide left panel, full-width list */
+  #email-left-panel { display:none !important; }
+  #email-list-pane { max-width:none !important; min-width:0 !important; flex:1 !important; border-right:none !important; }
   #email-reader-pane { display:none; }
-  /* Mobile email rows: hide snippet, shrink from */
   .email-item .ei-from { width:100px; }
   .email-item .ei-snippet { display:none; }
   .email-item .ei-sep { display:none; }
   .email-item .ei-actions { display:none !important; }
   .email-cat-tab { font-size:10px; padding:8px 2px; }
+  /* Email view full screen above tab bar */
+  #email-view { padding-bottom:calc(56px + env(safe-area-inset-bottom, 0px)) !important; }
   /* Mobile email compose — full width at bottom */
   #email-compose-box { width:100% !important; min-width:0 !important; bottom:0 !important; right:0 !important; left:0 !important; border-radius:16px 16px 0 0 !important; max-height:70vh; }
+  /* Email header compact on mobile */
+  #email-view > div:first-child { padding:8px 12px !important; flex-wrap:wrap; gap:8px; }
+  /* Cards mode on mobile: show left panel full-width, hide list pane */
+  #email-view.mobile-cards-mode #email-left-panel { display:flex !important; width:100% !important; border-right:none !important; }
+  #email-view.mobile-cards-mode #email-list-pane { display:none !important; }
+  #email-view.mobile-cards-mode #email-tab-folders,
+  #email-view.mobile-cards-mode #email-tab-cards { font-size:12px; padding:12px; }
+  #email-view.mobile-cards-mode #email-tab-folders svg,
+  #email-view.mobile-cards-mode #email-tab-cards svg { margin-right:6px; }
+  #email-view.mobile-cards-mode #email-cards { padding:8px; }
+  #email-view.mobile-cards-mode .card-item { padding:10px; gap:10px; }
+  #email-view.mobile-cards-mode .card-item-name { font-size:14px; }
+  #email-view.mobile-cards-mode .card-item-company { display:block; }
 }
 @media (max-width:1100px) {
   .card-detail-grid { grid-template-columns:1fr !important; }
@@ -559,10 +564,10 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 
 /* ─── MOBILE BOTTOM SHEET (Pins / Planner) ─── */
 .mobile-sheet {
-  display:none; position:fixed; left:0; right:0; bottom:0; z-index:28;
+  display:none; position:fixed; left:0; right:0; bottom:calc(52px + env(safe-area-inset-bottom, 0px)); z-index:28;
   background:var(--bg-card); border-radius:16px 16px 0 0;
   box-shadow:0 -4px 24px rgba(0,0,0,0.2); transition:transform 0.3s ease;
-  max-height:75vh; flex-direction:column; overflow:hidden;
+  max-height:70vh; flex-direction:column; overflow:hidden;
 }
 .mobile-sheet.open { display:flex; }
 .mobile-sheet .sheet-handle-bar {
@@ -632,6 +637,21 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 
   /* Map controls tighter on mobile */
   .map-controls { top:12px; right:10px; gap:6px; }
+
+  /* Hide map controls when discover panel is open — prevents clipping */
+  .discover-panel.active ~ .map-controls,
+  body.discover-active .map-controls { display:none !important; }
+
+  /* Discover panel above everything on mobile */
+  .discover-panel { z-index:29; top:0; left:0; right:0; width:100% !important;
+    border-radius:0 0 14px 14px; max-height:60vh; }
+
+  /* Pin/Planner sheets: taller default */
+  .mobile-sheet { min-height:50vh; }
+  .mobile-sheet .sheet-body { min-height:30vh; }
+
+  /* Satellite toggle hide when sheets are open */
+  .mobile-sheet.open ~ .satellite-toggle { display:none; }
 
   /* Marathon indicator above bottom bar */
   #marathon-build-indicator { bottom:70px !important; }
@@ -4524,16 +4544,20 @@ function switchTab(el, view) {
   if (el && el.classList) el.classList.add('active');
   currentView = view;
   document.getElementById('planner-view').classList.remove('active');
-  document.getElementById('email-view').style.display = 'none';
+  const ev = document.getElementById('email-view');
+  ev.style.display = 'none';
+  ev.classList.remove('mobile-cards-mode');
   // Hide satellite toggle in planner/email — it clips
   const satFloat = document.getElementById('satellite-toggle-btn');
   if (satFloat) satFloat.style.display = (view === 'pins') ? '' : 'none';
   if (view === 'planner') { document.getElementById('planner-view').classList.add('active'); initPlanner(); renderStopList(); }
-  else if (view === 'email') { document.getElementById('email-view').style.display = 'flex'; document.getElementById('email-view').style.flexDirection = 'column'; }
+  else if (view === 'email') { ev.style.display = 'flex'; ev.style.flexDirection = 'column'; }
 }
 
 function closeEmailView() {
-  document.getElementById('email-view').style.display = 'none';
+  const ev = document.getElementById('email-view');
+  ev.style.display = 'none';
+  ev.classList.remove('mobile-cards-mode');
   currentView = 'pins';
 }
 
@@ -6351,13 +6375,44 @@ const EXCLUDED_NAME_PATTERNS = /\b(home|house|residential|apartment|condo|duplex
 function toggleDiscover() {
   const panel = document.getElementById('discover-panel');
   if (panel.classList.contains('active')) closeDiscover();
-  else { closeDirections(); panel.classList.add('active'); document.getElementById('btn-discover').classList.add('active'); showDiscoverStep(1); }
+  else {
+    closeDirections();
+    panel.classList.add('active');
+    document.body.classList.add('discover-active');
+    document.getElementById('btn-discover').classList.add('active');
+    // If we have existing results, show them instead of resetting
+    if (discoverResults.length > 0) {
+      showDiscoverStep(3);
+    } else {
+      showDiscoverStep(1);
+    }
+  }
 }
 
 function closeDiscover() {
+  // On mobile, just hide the panel and keep results/markers intact
+  if (isMobileView() && discoverResults.length > 0) {
+    hideDiscoverPanel();
+    return;
+  }
+  fullCloseDiscover();
+}
+
+function hideDiscoverPanel() {
+  const panel = document.getElementById('discover-panel');
+  panel.classList.remove('active');
+  document.body.classList.remove('discover-active');
+  document.getElementById('btn-discover').classList.remove('active');
+  document.getElementById('discover-hint').classList.remove('active');
+  cancelAreaSelect();
+  // Keep discoverResults, discoverSelected, and markers alive
+}
+
+function fullCloseDiscover() {
   const panel = document.getElementById('discover-panel');
   panel.classList.remove('active');
   panel.style.display = 'none'; // Force hide as backup
+  document.body.classList.remove('discover-active');
   document.getElementById('btn-discover').classList.remove('active');
   document.getElementById('discover-hint').classList.remove('active');
   cancelAreaSelect(); clearDiscoverMarkers();
@@ -6375,7 +6430,79 @@ function startAreaSelect() {
   discoverMode = true;
   map.setOptions({ draggable: false, draggableCursor: 'crosshair' });
   document.getElementById('discover-hint').classList.add('active');
-  google.maps.event.addListenerOnce(map, 'mousedown', onAreaMouseDown);
+
+  // On mobile, use touch events with a hold delay to avoid accidental draws
+  if (isMobileView()) {
+    let holdTimer = null;
+    let touchStarted = false;
+    const onTouchStart = (e) => {
+      // Start a hold timer — only begin draw after 300ms hold
+      holdTimer = setTimeout(() => {
+        touchStarted = true;
+        const touch = e.touches ? e.touches[0] : e;
+        const point = new google.maps.Point(touch.clientX, touch.clientY);
+        // Convert pixel to LatLng using overlay projection workaround
+        const overlay = new google.maps.OverlayView();
+        overlay.draw = function(){};
+        overlay.setMap(map);
+        // Use bounds-based approach instead
+        const bounds = map.getBounds();
+        const ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+        const mapDiv = map.getDiv();
+        const mapRect = mapDiv.getBoundingClientRect();
+        const x = (touch.clientX - mapRect.left) / mapRect.width;
+        const y = (touch.clientY - mapRect.top) / mapRect.height;
+        const lat = ne.lat() - y * (ne.lat() - sw.lat());
+        const lng = sw.lng() + x * (ne.lng() - sw.lng());
+        areaStartLL = new google.maps.LatLng(lat, lng);
+        if (areaRect) areaRect.setMap(null);
+        areaRect = new google.maps.Rectangle({
+          bounds: new google.maps.LatLngBounds(areaStartLL, areaStartLL),
+          strokeColor: '#D4712A', strokeWeight: 2, fillColor: '#D4712A', fillOpacity: 0.08, map, editable: false, clickable: false,
+        });
+        overlay.setMap(null);
+        toast('Drawing area — drag to set size');
+      }, 300);
+    };
+    const onTouchMove = (e) => {
+      if (!touchStarted && holdTimer) { clearTimeout(holdTimer); holdTimer = null; return; }
+      if (!touchStarted || !areaRect) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const bounds = map.getBounds();
+      const ne = bounds.getNorthEast(), sw = bounds.getSouthWest();
+      const mapDiv = map.getDiv();
+      const mapRect = mapDiv.getBoundingClientRect();
+      const x = (touch.clientX - mapRect.left) / mapRect.width;
+      const y = (touch.clientY - mapRect.top) / mapRect.height;
+      const lat = ne.lat() - y * (ne.lat() - sw.lat());
+      const lng = sw.lng() + x * (ne.lng() - sw.lng());
+      areaRect.setBounds(new google.maps.LatLngBounds(
+        { lat: Math.min(areaStartLL.lat(), lat), lng: Math.min(areaStartLL.lng(), lng) },
+        { lat: Math.max(areaStartLL.lat(), lat), lng: Math.max(areaStartLL.lng(), lng) }
+      ));
+    };
+    const onTouchEnd = (e) => {
+      if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+      map.getDiv().removeEventListener('touchstart', onTouchStart);
+      map.getDiv().removeEventListener('touchmove', onTouchMove);
+      map.getDiv().removeEventListener('touchend', onTouchEnd);
+      if (!touchStarted || !areaRect) { cancelAreaSelect(); return; }
+      touchStarted = false;
+      const rectBounds = areaRect.getBounds();
+      cancelAreaSelect();
+      const rne = rectBounds.getNorthEast(), rsw = rectBounds.getSouthWest();
+      if (Math.abs(rne.lat() - rsw.lat()) < 0.001 || Math.abs(rne.lng() - rsw.lng()) < 0.001) {
+        toast('Area too small — try a bigger rectangle'); if (areaRect) { areaRect.setMap(null); areaRect = null; } return;
+      }
+      searchBusinessesInArea(rectBounds);
+    };
+    map.getDiv().addEventListener('touchstart', onTouchStart, { passive: false });
+    map.getDiv().addEventListener('touchmove', onTouchMove, { passive: false });
+    map.getDiv().addEventListener('touchend', onTouchEnd, { passive: false });
+  } else {
+    google.maps.event.addListenerOnce(map, 'mousedown', onAreaMouseDown);
+  }
 }
 
 function cancelAreaSelect() {
@@ -8110,8 +8237,9 @@ async function handleScoutYes() {
     window._lastRouteWaypoints = wp;
     window._lastRouteInfo = info;
     window._lastRouteDest = prospect.name;
-    showDriveButton();
-    toast(`📍 ${prospect.name} — ${info.miles} mi, ~${info.mins} min. Tap Start Driving!`);
+    // Auto-start navigation instead of just showing button
+    startNavigation(wp, prospect.name);
+    toast(`📍 Navigating to ${prospect.name} — ${info.miles} mi, ~${info.mins} min`);
   } else {
     map.panTo({ lat: newPin.lat, lng: newPin.lng });
     map.setZoom(15);
@@ -8345,15 +8473,27 @@ function switchMobileTab(tab) {
   const activeBtn = document.querySelector(`.mbb-tab[data-mtab="${tab}"]`);
   if (activeBtn) activeBtn.classList.add('active');
 
-  // Close all sheets first
+  // Close ALL panels/sheets/overlays first
   document.getElementById('mobile-pin-sheet').classList.remove('open');
   document.getElementById('mobile-planner-sheet').classList.remove('open');
-  closeMobileMore();
+  document.getElementById('mobile-more-overlay').classList.remove('open');
+  document.getElementById('sidebar').classList.remove('open');
+  // Close email view if open
+  const emailView = document.getElementById('email-view');
+  if (emailView && emailView.style.display !== 'none') {
+    emailView.style.display = 'none';
+    currentView = 'pins';
+  }
+  // Close discover/directions panels
+  const discPanel = document.getElementById('discover-panel');
+  if (discPanel && discPanel.classList.contains('active') && tab !== 'map') {
+    fullCloseDiscover();
+  }
+  // Close pin panel if open
+  document.getElementById('pin-panel').classList.remove('open');
 
   if (tab === 'map') {
-    // Pure map view — close sidebar, no sheets
-    document.getElementById('sidebar').classList.remove('open');
-    // Sync desktop tab to pins
+    // Pure map view — just the map
     switchTab(document.querySelector('.nav-tab[data-view="pins"]'), 'pins');
   } else if (tab === 'pins') {
     renderMobilePinList();
@@ -8392,7 +8532,8 @@ function openMobileMore() {
 }
 
 function closeMobileMore(e) {
-  if (e && e.target !== document.getElementById('mobile-more-overlay')) return;
+  // If called with event (from overlay click), only close if tapping backdrop
+  if (e && e.target && e.target !== document.getElementById('mobile-more-overlay')) return;
   document.getElementById('mobile-more-overlay').classList.remove('open');
   // Reset tab to map if More was the active tab
   if (currentMobileTab === 'more') {
@@ -8404,20 +8545,38 @@ function closeMobileMore(e) {
 }
 
 function mobileOpenEmail() {
-  closeMobileMore();
+  document.getElementById('mobile-more-overlay').classList.remove('open');
   document.getElementById('mobile-pin-sheet').classList.remove('open');
   document.getElementById('mobile-planner-sheet').classList.remove('open');
-  switchTab(document.querySelector('.nav-tab[data-view="pins"]'), 'email');
-  // On mobile, email view is full-screen overlay so it works already
+  document.getElementById('pin-panel').classList.remove('open');
+  const ev = document.getElementById('email-view');
+  ev.classList.remove('mobile-cards-mode');
+  ev.style.display = 'flex';
+  ev.style.flexDirection = 'column';
+  currentView = 'email';
+  // Make sure mail tab is active
+  if (isMobileView()) emailLeftTab('folders');
+  currentMobileTab = 'map';
+  document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
+  const mapBtn = document.querySelector('.mbb-tab[data-mtab="map"]');
+  if (mapBtn) mapBtn.classList.add('active');
 }
 
 function mobileOpenCards() {
-  closeMobileMore();
+  document.getElementById('mobile-more-overlay').classList.remove('open');
   document.getElementById('mobile-pin-sheet').classList.remove('open');
   document.getElementById('mobile-planner-sheet').classList.remove('open');
-  // Switch to email view then flip to cards tab
-  switchTab(document.querySelector('.nav-tab[data-view="pins"]'), 'email');
-  emailLeftTab('cards');
+  document.getElementById('pin-panel').classList.remove('open');
+  const ev = document.getElementById('email-view');
+  ev.classList.add('mobile-cards-mode');
+  ev.style.display = 'flex';
+  ev.style.flexDirection = 'column';
+  currentView = 'email';
+  setTimeout(() => emailLeftTab('cards'), 100);
+  currentMobileTab = 'map';
+  document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
+  const mapBtn = document.querySelector('.mbb-tab[data-mtab="map"]');
+  if (mapBtn) mapBtn.classList.add('active');
 }
 
 // ── Mobile Pin Sheet Renderer ──
