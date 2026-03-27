@@ -7489,6 +7489,20 @@ function toggleScoutMode() {
   startScoutMode();
 }
 
+// Get current position — reuse nav GPS marker if available, otherwise fresh request
+async function getKnownPosition() {
+  // 1. If we have a live GPS marker from navigation, use it instantly
+  if (gpsMarker) {
+    const pos = gpsMarker.getPosition();
+    return { lat: pos.lat(), lng: pos.lng() };
+  }
+  // 2. Otherwise request fresh GPS
+  const pos = await new Promise((res, rej) => 
+    navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 })
+  );
+  return { lat: pos.coords.latitude, lng: pos.coords.longitude };
+}
+
 async function startScoutMode() {
   // Check speech support
   if (!window.speechSynthesis) { toast('Speech synthesis not supported in this browser.'); return; }
@@ -7509,11 +7523,9 @@ async function startScoutMode() {
   
   showScoutOverlay('Scanning for prospects nearby...', 'Getting your location');
   
-  // Get GPS
   let gpsPos;
   try {
-    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000 }));
-    gpsPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    gpsPos = await getKnownPosition();
   } catch(e) {
     speak('Could not get your location.');
     showScoutOverlay('GPS unavailable', 'Enable location services and try again');
@@ -7634,13 +7646,12 @@ function announceScoutProspect() {
       const nextLabel = nextRadius === 1600 ? '1 mile' : '2 miles';
       const currentLabel = scoutRadius <= 800 ? 'half a mile' : (scoutRadius <= 1600 ? '1 mile' : '2 miles');
       speak(`That's all ${scoutCurrentIndex} prospects within ${currentLabel}. Want me to extend to ${nextLabel}?`);
-      // Get fresh GPS for extend
-      navigator.geolocation.getCurrentPosition(pos => {
-        showScoutOverlayExtend(currentLabel, nextLabel, nextRadius, { lat: pos.coords.latitude, lng: pos.coords.longitude });
-      }, () => {
+      getKnownPosition().then(pos => {
+        showScoutOverlayExtend(currentLabel, nextLabel, nextRadius, pos);
+      }).catch(() => {
         showScoutOverlay('Scouting complete', `Reviewed ${scoutCurrentIndex} prospect${scoutCurrentIndex !== 1 ? 's' : ''}`);
         setTimeout(endScoutMode, 4000);
-      }, { enableHighAccuracy: true, timeout: 5000 });
+      });
     } else {
       speak('No more prospects within 2 miles. Scout mode ending.');
       showScoutOverlay('Scouting complete', `Reviewed ${scoutCurrentIndex} prospect${scoutCurrentIndex !== 1 ? 's' : ''} up to 2 miles`);
@@ -7782,8 +7793,7 @@ async function handleScoutYes() {
   // Not navigating — build a direct route from GPS to this business
   let origin;
   try {
-    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
-    origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    origin = await getKnownPosition();
   } catch(e) {
     // No GPS — just show pin on map, zoom to it
     map.panTo({ lat: newPin.lat, lng: newPin.lng });
@@ -7926,8 +7936,7 @@ async function extendScoutRadius(newRadius) {
   // Need fresh GPS
   let gpsPos;
   try {
-    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 10000 }));
-    gpsPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    gpsPos = await getKnownPosition();
   } catch(e) {
     speak('Could not get your location.');
     endScoutMode();
