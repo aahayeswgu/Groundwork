@@ -6232,7 +6232,11 @@ async function searchBusinessesInArea(bounds) {
 
           const dedupeKey = name.toLowerCase().replace(/[^a-z0-9]/g, '');
           if (seen.has(dedupeKey)) return;
+          // Also dedup by coordinates (~50m proximity)
+          const coordKey = `${Math.round(lat*1000)}_${Math.round(lng*1000)}`;
+          if (seen.has(coordKey)) return;
           seen.add(dedupeKey);
+          seen.add(coordKey);
 
           const type = classifyGooglePlace(place);
           const photoUrl = (place.photos && place.photos.length > 0) ? place.photos[0].getUrl({ maxWidth: 280, maxHeight: 160 }) : '';
@@ -7599,13 +7603,21 @@ async function startScoutMode() {
   const searchResults = await Promise.allSettled(searchPromises);
   searchResults.forEach(r => { if (r.status === 'fulfilled' && r.value) allResults.push(...r.value); });
   
-  // Deduplicate by place_id
+  // Deduplicate by place_id AND by name+proximity
   const seen = new Set();
   const unique = [];
   for (const r of allResults) {
-    const key = r.place_id || (r.name + r.lat);
-    if (seen.has(key)) continue;
-    seen.add(key);
+    // Primary key: place_id
+    if (r.place_id && seen.has(r.place_id)) continue;
+    // Secondary key: normalized name (catches same biz from different search queries)
+    const nameKey = r.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (seen.has(nameKey)) continue;
+    // Tertiary: coordinate proximity (within ~50m)
+    const coordKey = `${Math.round(r.lat*1000)}_${Math.round(r.lng*1000)}`;
+    if (seen.has(coordKey)) continue;
+    if (r.place_id) seen.add(r.place_id);
+    seen.add(nameKey);
+    seen.add(coordKey);
     unique.push(r);
   }
   
@@ -8015,9 +8027,14 @@ async function extendScoutRadius(newRadius) {
   const seen = new Set();
   const unique = [];
   for (const r of allResults) {
-    const key = r.place_id || (r.name + r.lat);
-    if (seen.has(key)) continue;
-    seen.add(key);
+    if (r.place_id && seen.has(r.place_id)) continue;
+    const nameKey = r.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (seen.has(nameKey)) continue;
+    const coordKey = `${Math.round(r.lat*1000)}_${Math.round(r.lng*1000)}`;
+    if (seen.has(coordKey)) continue;
+    if (r.place_id) seen.add(r.place_id);
+    seen.add(nameKey);
+    seen.add(coordKey);
     unique.push(r);
   }
   
@@ -9377,11 +9394,17 @@ function addToMarathonFromDiscover() {
     marathonQueue = [];
   }
   
-  // Gather selected businesses as stops
+  // Gather selected businesses as stops (with dedup safety)
   const stops = [];
+  const stopSeen = new Set();
   discoverSelected.forEach(i => {
     const b = discoverResults[i];
     if (b) {
+      const nameKey = b.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const coordKey = `${Math.round(b.lat*1000)}_${Math.round(b.lng*1000)}`;
+      if (stopSeen.has(nameKey) || stopSeen.has(coordKey)) return;
+      stopSeen.add(nameKey);
+      stopSeen.add(coordKey);
       stops.push({
         pinId: null,
         name: b.name,
