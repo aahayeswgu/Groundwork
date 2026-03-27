@@ -515,17 +515,104 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   .card-detail-grid { grid-template-columns:1fr !important; }
 }
 
-/* ─── MOBILE ─── */
+/* ─── MOBILE BOTTOM TAB BAR ─── */
+.mobile-bottom-bar {
+  display:none; position:fixed; bottom:0; left:0; right:0; z-index:30;
+  background:var(--bg-card); border-top:1px solid var(--border);
+  padding:6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -2px 12px rgba(0,0,0,0.15);
+}
+.mobile-bottom-bar .mbb-tabs { display:flex; justify-content:space-around; align-items:center; }
+.mobile-bottom-bar .mbb-tab {
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:6px 12px; border:none; background:none; cursor:pointer;
+  color:var(--text-muted); font-size:10px; font-weight:600; font-family:inherit;
+  transition:color 0.15s; min-width:54px; -webkit-tap-highlight-color:transparent;
+}
+.mobile-bottom-bar .mbb-tab.active { color:var(--orange); }
+.mobile-bottom-bar .mbb-tab svg { width:22px; height:22px; }
+
+/* ─── MOBILE MORE MENU ─── */
+.mobile-more-overlay {
+  display:none; position:fixed; inset:0; z-index:40; background:rgba(0,0,0,0.4);
+  -webkit-tap-highlight-color:transparent;
+}
+.mobile-more-overlay.open { display:flex; align-items:flex-end; }
+.mobile-more-sheet {
+  width:100%; background:var(--bg-card); border-radius:20px 20px 0 0;
+  padding:12px 0 calc(16px + env(safe-area-inset-bottom, 0px));
+  box-shadow:0 -8px 32px rgba(0,0,0,0.25); max-height:70vh; overflow-y:auto;
+}
+.mobile-more-sheet .more-handle {
+  width:36px; height:4px; background:var(--border); border-radius:2px;
+  margin:0 auto 12px;
+}
+.mobile-more-sheet .more-item {
+  display:flex; align-items:center; gap:14px; padding:14px 24px;
+  font-size:15px; font-weight:500; color:var(--text-primary); cursor:pointer;
+  border:none; background:none; width:100%; text-align:left; font-family:inherit;
+  -webkit-tap-highlight-color:transparent; transition:background 0.15s;
+}
+.mobile-more-sheet .more-item:active { background:var(--bg-secondary); }
+.mobile-more-sheet .more-item svg { width:22px; height:22px; color:var(--text-muted); flex-shrink:0; }
+.mobile-more-sheet .more-divider { height:1px; background:var(--border); margin:4px 20px; }
+
+/* ─── MOBILE BOTTOM SHEET (Pins / Planner) ─── */
+.mobile-sheet {
+  display:none; position:fixed; left:0; right:0; bottom:0; z-index:28;
+  background:var(--bg-card); border-radius:16px 16px 0 0;
+  box-shadow:0 -4px 24px rgba(0,0,0,0.2); transition:transform 0.3s ease;
+  max-height:75vh; flex-direction:column; overflow:hidden;
+}
+.mobile-sheet.open { display:flex; }
+.mobile-sheet .sheet-handle-bar {
+  padding:10px 0 6px; text-align:center; cursor:grab; flex-shrink:0;
+}
+.mobile-sheet .sheet-handle {
+  width:36px; height:4px; background:var(--border); border-radius:2px;
+  margin:0 auto; pointer-events:none;
+}
+.mobile-sheet .sheet-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2px 16px 10px; border-bottom:1px solid var(--border); flex-shrink:0;
+}
+.mobile-sheet .sheet-header h3 { font-size:16px; font-weight:700; margin:0; }
+.mobile-sheet .sheet-body { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+/* ─── MOBILE BREAKPOINT ─── */
 .mobile-toggle { display:none; position:absolute; top:12px; left:12px; z-index:20; }
 @media (max-width:768px) {
-  #sidebar { position:absolute; top:0; left:0; height:100%; z-index:25; transform:translateX(-100%); width:300px; min-width:300px; }
+  /* Show bottom bar, hide hamburger */
+  .mobile-bottom-bar { display:block; }
+  .mobile-toggle { display:none !important; }
+
+  /* Sidebar: full-width sheet from left, hidden by default */
+  #sidebar { position:fixed; top:0; left:0; height:100%; z-index:35;
+    transform:translateX(-100%); width:100% !important; min-width:0 !important;
+    transition:transform 0.3s ease;
+  }
   #sidebar.open { transform:translateX(0); }
-  .mobile-toggle { display:flex; }
+  .sidebar-toggle { display:none; }
+
+  /* Pin panel responsive */
   #pin-panel { width:100%; }
+
+  /* Planner responsive */
   #planner-view { flex-direction:column; }
-  .planner-left { max-height:50%; border-right:none; border-bottom:1px solid var(--border); }
+  .planner-left { max-height:55%; border-right:none; border-bottom:1px solid var(--border); }
+
+  /* Panels full-width */
   .directions-panel { width:calc(100% - 24px); left:12px; right:12px; }
   .discover-panel { width:calc(100% - 24px); left:12px; right:12px; }
+
+  /* InfoWindow responsive */
+  .gm-style-iw-c { max-width:calc(100vw - 60px) !important; }
+
+  /* Touch targets — 44px minimum */
+  .map-ctrl-btn { width:44px; height:44px; }
+  .icon-btn { width:44px; height:44px; }
+  .nav-voice-btn { width:48px; height:48px; }
+
   /* Nav mode: full width on mobile */
   .nav-top { margin:0; border-radius:0; padding:16px 16px; gap:10px; }
   .nav-bottom { margin:0; border-radius:0; padding:12px 16px; }
@@ -535,7 +622,42 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   .nav-eta { font-size:24px; }
   .nav-turn-icon { width:56px; height:56px; }
   .nav-speed-badge { width:48px; height:48px; font-size:16px; }
-  .nav-voice-btn { width:48px; height:48px; }
+
+  /* Hide bottom bar during navigation */
+  body.nav-active .mobile-bottom-bar { display:none !important; }
+  body.nav-active .mobile-sheet { display:none !important; }
+
+  /* Satellite toggle above bottom bar */
+  .satellite-toggle { bottom:72px; }
+
+  /* Map controls tighter on mobile */
+  .map-controls { top:12px; right:10px; gap:6px; }
+
+  /* Marathon indicator above bottom bar */
+  #marathon-build-indicator { bottom:70px !important; }
+
+  /* Toast above bottom bar */
+  .toast { bottom:120px !important; }
+
+  /* Settings menu full-width on mobile */
+  #settings-menu { width:calc(100% - 24px) !important; left:12px !important; right:12px !important; max-width:none !important; }
+
+  /* Email view safe area */
+  #email-view { padding-bottom:env(safe-area-inset-bottom, 0px); }
+
+  /* Profile section compact on mobile */
+  .profile-section { padding:10px 16px; }
+
+  /* Safe area padding for app */
+  #app { padding-top:env(safe-area-inset-top, 0px); }
+}
+
+/* Small phones */
+@media (max-width:390px) {
+  .map-controls { right:8px; top:8px; }
+  .satellite-toggle { left:8px; bottom:72px; }
+  .mbb-tab { padding:6px 8px; min-width:48px; font-size:9px; }
+  .mobile-sheet .sheet-header { padding:2px 12px 8px; }
 }
 
 /* ─── GPS PULSE DOT ─── */
@@ -1487,6 +1609,105 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
         <div id="email-reader-empty" style="padding:60px 20px;text-align:center;color:var(--text-muted);font-size:14px;">Select an email to read</div>
         <div id="email-reader" style="display:none;flex:1;overflow:hidden;flex-direction:column;"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM TAB BAR -->
+  <div class="mobile-bottom-bar" id="mobile-bottom-bar">
+    <div class="mbb-tabs">
+      <button class="mbb-tab active" data-mtab="map" onclick="switchMobileTab('map')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Map
+      </button>
+      <button class="mbb-tab" data-mtab="pins" onclick="switchMobileTab('pins')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Pins
+      </button>
+      <button class="mbb-tab" data-mtab="planner" onclick="switchMobileTab('planner')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Planner
+      </button>
+      <button class="mbb-tab" data-mtab="more" onclick="openMobileMore()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        More
+      </button>
+    </div>
+  </div>
+
+  <!-- MOBILE PIN SHEET -->
+  <div class="mobile-sheet" id="mobile-pin-sheet">
+    <div class="sheet-handle-bar" id="pin-sheet-handle"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h3 id="mobile-pin-count">0 Pins</h3>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="mobile-pin-filter" onchange="mobileFilterPins()" style="font-size:12px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);font-family:inherit;">
+          <option value="all">All Statuses</option>
+        </select>
+        <button onclick="closeMobileSheet('pins')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="sheet-body" id="mobile-pin-list"></div>
+  </div>
+
+  <!-- MOBILE PLANNER SHEET -->
+  <div class="mobile-sheet" id="mobile-planner-sheet">
+    <div class="sheet-handle-bar" id="planner-sheet-handle"><div class="sheet-handle"></div></div>
+    <div class="sheet-header">
+      <h3 id="mobile-planner-title">Today's Plan</h3>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button onclick="plannerPrevDay()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;font-size:18px;">&lsaquo;</button>
+        <span id="mobile-planner-date" style="font-size:13px;font-weight:600;color:var(--text-primary);"></span>
+        <button onclick="plannerNextDay()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;font-size:18px;">&rsaquo;</button>
+        <button onclick="closeMobileSheet('planner')" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;margin-left:4px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="sheet-body" id="mobile-planner-list"></div>
+    <div style="padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:8px;">
+      <button onclick="buildRoute()" class="btn btn-primary" style="flex:1;padding:12px;font-size:14px;font-weight:700;border-radius:10px;">Route It</button>
+      <button onclick="mobileShareRoute()" class="btn" style="padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- MOBILE MORE MENU -->
+  <div class="mobile-more-overlay" id="mobile-more-overlay" onclick="closeMobileMore(event)">
+    <div class="mobile-more-sheet" onclick="event.stopPropagation()">
+      <div class="more-handle"></div>
+      <button class="more-item" onclick="mobileOpenEmail()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,7 12,13 2,7"/></svg>
+        Email
+      </button>
+      <button class="more-item" onclick="mobileOpenCards()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="2" y1="7" x2="22" y2="7"/><line x1="2" y1="11" x2="7" y2="11"/></svg>
+        Business Cards
+      </button>
+      <div class="more-divider"></div>
+      <button class="more-item" onclick="closeMobileMore();toggleDiscover()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        Discover Businesses
+      </button>
+      <button class="more-item" onclick="closeMobileMore();toggleScoutMode()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
+        Scout Mode
+      </button>
+      <div class="more-divider"></div>
+      <button class="more-item" onclick="closeMobileMore();toggleTheme()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+        <span id="mobile-theme-label">Dark Mode</span>
+      </button>
+      <button class="more-item" onclick="closeMobileMore();openSettingsMenu()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.32 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </button>
+      <button class="more-item" onclick="closeMobileMore();openProfileModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </button>
     </div>
   </div>
 </div>
@@ -6760,6 +6981,7 @@ async function startNavigation(routeInfo, destLabel) {
     localStorage.setItem('gw_desktop_nav_warned', '1');
   }
   navActive = true; navDestLabel = destLabel; navCurrentStep = 0;
+  document.body.classList.add('nav-active');
   document.getElementById('nav-mode').classList.add('active');
   // Close all panels that could overlap
   document.getElementById('sidebar').classList.remove('open');
@@ -6916,6 +7138,7 @@ function exitNavigation() {
   
   // Clear navigation state
   navActive = false; navFollowUser = false;
+  document.body.classList.remove('nav-active');
   document.getElementById('nav-mode').classList.remove('active'); hideDriveButton();
   if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; } tracking = false;
   navSteps = []; navCurrentStep = 0; navVisitedStops = 0;
@@ -8101,10 +8324,354 @@ async function extendScoutRadius(newRadius) {
 // ═══════════════════════════════════════
 // MOBILE / SIDEBAR
 // ═══════════════════════════════════════
+
+// Desktop sidebar functions (unchanged)
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 function toggleSidebarCollapse() { document.getElementById('sidebar').classList.toggle('collapsed'); setTimeout(() => google.maps.event.trigger(map, 'resize'), 350); }
 function collapseSidebar() { document.getElementById('sidebar').classList.add('collapsed'); setTimeout(() => google.maps.event.trigger(map, 'resize'), 350); }
 function expandSidebar() { document.getElementById('sidebar').classList.remove('collapsed'); setTimeout(() => google.maps.event.trigger(map, 'resize'), 350); }
+
+// ── Mobile detection ──
+function isMobileView() { return window.innerWidth <= 768; }
+
+// ── Mobile Tab Switching ──
+let currentMobileTab = 'map';
+
+function switchMobileTab(tab) {
+  currentMobileTab = tab;
+
+  // Update bottom bar highlight
+  document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
+  const activeBtn = document.querySelector(`.mbb-tab[data-mtab="${tab}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // Close all sheets first
+  document.getElementById('mobile-pin-sheet').classList.remove('open');
+  document.getElementById('mobile-planner-sheet').classList.remove('open');
+  closeMobileMore();
+
+  if (tab === 'map') {
+    // Pure map view — close sidebar, no sheets
+    document.getElementById('sidebar').classList.remove('open');
+    // Sync desktop tab to pins
+    switchTab(document.querySelector('.nav-tab[data-view="pins"]'), 'pins');
+  } else if (tab === 'pins') {
+    renderMobilePinList();
+    populateMobileStatusFilter();
+    document.getElementById('mobile-pin-sheet').classList.add('open');
+  } else if (tab === 'planner') {
+    initPlanner();
+    renderMobilePlannerList();
+    syncMobilePlannerDate();
+    document.getElementById('mobile-planner-sheet').classList.add('open');
+  } else if (tab === 'more') {
+    openMobileMore();
+  }
+}
+
+function closeMobileSheet(which) {
+  if (which === 'pins') {
+    document.getElementById('mobile-pin-sheet').classList.remove('open');
+  } else if (which === 'planner') {
+    document.getElementById('mobile-planner-sheet').classList.remove('open');
+  }
+  // Reset tab highlight to map
+  currentMobileTab = 'map';
+  document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
+  const mapBtn = document.querySelector('.mbb-tab[data-mtab="map"]');
+  if (mapBtn) mapBtn.classList.add('active');
+}
+
+// ── Mobile More Menu ──
+function openMobileMore() {
+  // Update theme label
+  const theme = document.body.getAttribute('data-theme');
+  const themeLabel = document.getElementById('mobile-theme-label');
+  if (themeLabel) themeLabel.textContent = theme === 'dark' ? 'Light Mode' : (theme === 'gray' ? 'Light Mode' : 'Dark Mode');
+  document.getElementById('mobile-more-overlay').classList.add('open');
+}
+
+function closeMobileMore(e) {
+  if (e && e.target !== document.getElementById('mobile-more-overlay')) return;
+  document.getElementById('mobile-more-overlay').classList.remove('open');
+  // Reset tab to map if More was the active tab
+  if (currentMobileTab === 'more') {
+    currentMobileTab = 'map';
+    document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
+    const mapBtn = document.querySelector('.mbb-tab[data-mtab="map"]');
+    if (mapBtn) mapBtn.classList.add('active');
+  }
+}
+
+function mobileOpenEmail() {
+  closeMobileMore();
+  document.getElementById('mobile-pin-sheet').classList.remove('open');
+  document.getElementById('mobile-planner-sheet').classList.remove('open');
+  switchTab(document.querySelector('.nav-tab[data-view="pins"]'), 'email');
+  // On mobile, email view is full-screen overlay so it works already
+}
+
+function mobileOpenCards() {
+  closeMobileMore();
+  document.getElementById('mobile-pin-sheet').classList.remove('open');
+  document.getElementById('mobile-planner-sheet').classList.remove('open');
+  // Switch to email view then flip to cards tab
+  switchTab(document.querySelector('.nav-tab[data-view="pins"]'), 'email');
+  emailLeftTab('cards');
+}
+
+// ── Mobile Pin Sheet Renderer ──
+let mobileStatusFilter = 'all';
+
+function populateMobileStatusFilter() {
+  const sel = document.getElementById('mobile-pin-filter');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="all">All Statuses</option>';
+  statuses.forEach(s => {
+    sel.innerHTML += `<option value="${s.id}">${escHtml(s.label)}</option>`;
+  });
+  sel.value = current || 'all';
+}
+
+function mobileFilterPins() {
+  mobileStatusFilter = document.getElementById('mobile-pin-filter').value;
+  renderMobilePinList();
+}
+
+function renderMobilePinList() {
+  const list = document.getElementById('mobile-pin-list');
+  if (!list) return;
+
+  let filtered = [...pins];
+  if (mobileStatusFilter && mobileStatusFilter !== 'all') {
+    filtered = filtered.filter(p => p.status === mobileStatusFilter);
+  }
+
+  // Update count
+  const countEl = document.getElementById('mobile-pin-count');
+  if (countEl) countEl.textContent = `${filtered.length} Pin${filtered.length !== 1 ? 's' : ''}`;
+
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:14px;">No pins yet. Tap + on the map to add your first pin.</div>';
+    return;
+  }
+
+  // Sort by status groups
+  let html = '';
+  const groups = {};
+  statuses.forEach(s => { groups[s.id] = []; });
+  filtered.forEach(p => {
+    const key = p.status || (statuses[0] || {}).id;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(p);
+  });
+
+  statuses.forEach(s => {
+    const items = groups[s.id];
+    if (!items || !items.length) return;
+    html += `<div style="padding:8px 16px 4px;font-size:11px;font-weight:700;color:${s.color};text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:6px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:${s.color};flex-shrink:0;"></span>
+      ${escHtml(s.label)} <span style="color:var(--text-muted);font-weight:500;">(${items.length})</span>
+    </div>`;
+    items.forEach(p => {
+      const inPlan = todayStops.includes(p.id);
+      html += `<div onclick="mobilePinTap('${p.id}')" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background 0.1s;" ontouchstart="this.style.background='var(--bg-secondary)'" ontouchend="this.style.background=''">
+        <div style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.title)}</div>
+          <div style="font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.address || 'No address')}</div>
+        </div>
+        <button onclick="event.stopPropagation();quickTogglePlan('${p.id}');renderMobilePinList()" style="flex-shrink:0;width:36px;height:36px;border-radius:8px;border:${inPlan ? 'none' : '1.5px solid var(--border)'};background:${inPlan ? 'var(--green)' : 'transparent'};color:${inPlan ? '#fff' : 'var(--text-muted)'};cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;transition:all 0.15s;">${inPlan ? '✓' : '+'}</button>
+      </div>`;
+    });
+  });
+
+  list.innerHTML = html;
+}
+
+function mobilePinTap(id) {
+  // Close sheet, fly to pin, show info window
+  document.getElementById('mobile-pin-sheet').classList.remove('open');
+  currentMobileTab = 'map';
+  document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
+  const mapBtn = document.querySelector('.mbb-tab[data-mtab="map"]');
+  if (mapBtn) mapBtn.classList.add('active');
+  flyToPin(id);
+}
+
+// ── Mobile Planner Sheet Renderer ──
+function syncMobilePlannerDate() {
+  const dateEl = document.getElementById('mobile-planner-date');
+  if (dateEl) {
+    dateEl.textContent = plannerDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  const titleEl = document.getElementById('mobile-planner-title');
+  if (titleEl) {
+    const isToday = plannerDate.toDateString() === new Date().toDateString();
+    titleEl.textContent = isToday ? "Today's Plan" : plannerDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+}
+
+function renderMobilePlannerList() {
+  const list = document.getElementById('mobile-planner-list');
+  if (!list) return;
+  syncMobilePlannerDate();
+
+  if (!todayStops.length) {
+    list.innerHTML = '<div style="padding:40px 20px;text-align:center;color:var(--text-muted);font-size:14px;">No stops planned.<br>Tap a pin\'s <strong>+</strong> button to add it.</div>';
+    return;
+  }
+
+  let html = '';
+  todayStops.forEach((sid, i) => {
+    const pin = pins.find(p => p.id === sid);
+    if (!pin) return;
+    const status = statuses.find(s => s.id === pin.status) || statuses[0];
+    html += `<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;" onclick="mobileStopTap('${sid}')">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--orange);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">${i + 1}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(pin.title)}</div>
+        <div style="font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(pin.address || '')}</div>
+      </div>
+      <button onclick="event.stopPropagation();removeStop(${i});renderMobilePlannerList();" style="flex-shrink:0;width:36px;height:36px;border-radius:8px;border:none;background:rgba(239,68,68,0.1);color:#EF4444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+function mobileStopTap(pinId) {
+  // Close sheet, jump to stop on map
+  document.getElementById('mobile-planner-sheet').classList.remove('open');
+  currentMobileTab = 'map';
+  document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
+  const mapBtn = document.querySelector('.mbb-tab[data-mtab="map"]');
+  if (mapBtn) mapBtn.classList.add('active');
+  jumpToStopOnMap(pinId);
+}
+
+function mobileShareRoute() {
+  if (typeof shareRouteToGoogleMaps === 'function') shareRouteToGoogleMaps();
+}
+
+// ── Sheet Drag Behavior ──
+function initSheetDrag(sheetId, handleId) {
+  const sheet = document.getElementById(sheetId);
+  const handle = document.getElementById(handleId);
+  if (!sheet || !handle) return;
+
+  let startY = 0, startTranslate = 0, currentTranslate = 0, isDragging = false;
+  const maxHeight = () => window.innerHeight * 0.75;
+
+  handle.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    startY = e.touches[0].clientY;
+    const transform = getComputedStyle(sheet).transform;
+    startTranslate = transform === 'none' ? 0 : parseInt(transform.split(',')[5]) || 0;
+    sheet.style.transition = 'none';
+  }, { passive: true });
+
+  handle.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const deltaY = e.touches[0].clientY - startY;
+    // Only allow dragging down (positive delta)
+    currentTranslate = Math.max(0, startTranslate + deltaY);
+    sheet.style.transform = `translateY(${currentTranslate}px)`;
+  }, { passive: true });
+
+  handle.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    sheet.style.transition = 'transform 0.3s ease';
+
+    // If dragged more than 100px down, close the sheet
+    if (currentTranslate > 100) {
+      sheet.classList.remove('open');
+      sheet.style.transform = '';
+      currentMobileTab = 'map';
+      document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
+      const mapBtn = document.querySelector('.mbb-tab[data-mtab="map"]');
+      if (mapBtn) mapBtn.classList.add('active');
+    } else {
+      // Snap back
+      sheet.style.transform = '';
+    }
+    currentTranslate = 0;
+  }, { passive: true });
+}
+
+// ── Sync mobile sheets when desktop data changes ──
+const _origRenderPinList = typeof renderPinList === 'function' ? renderPinList : null;
+const _origRenderStopList = typeof renderStopList === 'function' ? renderStopList : null;
+const _origLoadPlannerDay = typeof loadPlannerDay === 'function' ? loadPlannerDay : null;
+
+// Hook into renderPinList to keep mobile sheet in sync
+(function() {
+  const origRPL = renderPinList;
+  renderPinList = function() {
+    origRPL.apply(this, arguments);
+    if (isMobileView() && document.getElementById('mobile-pin-sheet').classList.contains('open')) {
+      renderMobilePinList();
+    }
+  };
+})();
+
+// Hook into renderStopList to keep mobile planner in sync
+(function() {
+  const origRSL = renderStopList;
+  renderStopList = function() {
+    origRSL.apply(this, arguments);
+    if (isMobileView() && document.getElementById('mobile-planner-sheet').classList.contains('open')) {
+      renderMobilePlannerList();
+    }
+  };
+})();
+
+// Hook into loadPlannerDay to sync mobile date display
+(function() {
+  const origLPD = loadPlannerDay;
+  loadPlannerDay = function() {
+    origLPD.apply(this, arguments);
+    if (isMobileView()) syncMobilePlannerDate();
+  };
+})();
+
+// ── Initialize mobile on load ──
+function initMobile() {
+  if (!isMobileView()) return;
+
+  // Init sheet drag handles
+  initSheetDrag('mobile-pin-sheet', 'pin-sheet-handle');
+  initSheetDrag('mobile-planner-sheet', 'planner-sheet-handle');
+
+  // Close sheets on outside map tap
+  document.getElementById('map')?.addEventListener('click', () => {
+    if (currentMobileTab !== 'map') {
+      closeMobileSheet('pins');
+      closeMobileSheet('planner');
+    }
+  });
+}
+
+// Run init after map loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(initMobile, 500));
+} else {
+  setTimeout(initMobile, 500);
+}
+
+// Re-init on resize (e.g., rotating phone)
+window.addEventListener('resize', () => {
+  if (!isMobileView()) {
+    // Close mobile UI if resized to desktop
+    document.getElementById('mobile-pin-sheet')?.classList.remove('open');
+    document.getElementById('mobile-planner-sheet')?.classList.remove('open');
+    document.getElementById('mobile-more-overlay')?.classList.remove('open');
+  }
+});
 
 // ═══════════════════════════════════════
 // PIN VISIBILITY
