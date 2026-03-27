@@ -515,6 +515,9 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   #email-view.mobile-cards-mode .card-item { padding:10px; gap:10px; }
   #email-view.mobile-cards-mode .card-item-name { font-size:14px; }
   #email-view.mobile-cards-mode .card-item-company { display:block; }
+  /* Hide Scout Mode on mobile — nav passed to Google */
+  #btn-scout { display:none !important; }
+  #nav-scout-btn { display:none !important; }
 }
 @media (max-width:1100px) {
   .card-detail-grid { grid-template-columns:1fr !important; }
@@ -1736,10 +1739,6 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       <button class="more-item" onclick="closeMobileMore();toggleDiscover()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
         Discover Businesses
-      </button>
-      <button class="more-item" onclick="closeMobileMore();toggleScoutMode()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
-        Scout Mode
       </button>
       <div class="more-divider"></div>
       <button class="more-item" onclick="closeMobileMore();toggleTheme()">
@@ -3544,6 +3543,7 @@ function showPinInfoWindow(id) {
         <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
           <button onclick="togglePlanFromBubble('${pin.id}')" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:7px 10px;border-radius:6px;border:none;background:${planBtnColor};color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:background 0.15s;" onmouseover="this.style.background='${planBtnHover}'" onmouseout="this.style.background='${planBtnColor}'">${planBtnText}</button>
           <button onclick="infoWindow.close();currentInfoWindowPinId=null;openEditPin('${pin.id}')" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:7px 10px;border-radius:6px;border:1.5px solid #D4712A;background:transparent;color:#D4712A;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#D4712A';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#D4712A'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
+          <button onclick="quickDeletePin('${pin.id}')" style="display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border-radius:6px;border:1.5px solid #EF4444;background:transparent;color:#EF4444;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'" title="Delete pin"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
         <button onclick="askClaudeAboutBusiness('${escHtml(pin.title).replace(/'/g,"\\'")}','${escHtml(pin.address||'').replace(/'/g,"\\'")}')" style="width:100%;margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:6px;border:1.5px solid #8B5CF6;background:transparent;color:#8B5CF6;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#8B5CF6';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#8B5CF6'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0110 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> Ask Claude</button>
         <div style="margin-top:6px;text-align:center;">
@@ -3678,6 +3678,19 @@ function deletePin() {
   deletePinFromCloud(delId);
   toast('Pin removed.');
   
+}
+
+function quickDeletePin(id) {
+  const pin = pins.find(p => p.id === id);
+  if (!pin) return;
+  if (!confirm('Delete "' + pin.title + '"? This can\'t be undone.')) return;
+  infoWindow.close();
+  currentInfoWindowPinId = null;
+  pins = pins.filter(p => p.id !== id);
+  todayStops = todayStops.filter(s => s !== id);
+  savePins(); saveStops(); refreshMarkers(); renderPinList(); renderStopList();
+  deletePinFromCloud(id);
+  toast('Pin removed.');
 }
 
 function closePanel() {
