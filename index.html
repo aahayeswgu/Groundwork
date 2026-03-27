@@ -10669,12 +10669,15 @@ function showMarathonStopList() {
     html += `<div id="marathon-area-${aIdx}-stops" style="display:${isExpanded ? 'block' : 'none'};padding:4px 8px 8px;">`;
     if (area.stops) {
       area.stops.forEach((stop, sIdx) => {
-        html += `<div class="marathon-stop-row" draggable="true" data-area-idx="${aIdx}" data-stop-idx="${sIdx}" onclick="panToMarathonStop(${aIdx},${sIdx})" style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background 0.1s;margin-bottom:2px;" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='transparent'">
-          <div style="width:20px;height:20px;border-radius:50%;background:${color};color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:grab;">${sIdx+1}</div>
-          <div style="flex:1;min-width:0;">
+        html += `<div class="marathon-stop-row" draggable="true" data-area-idx="${aIdx}" data-stop-idx="${sIdx}" style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:6px;cursor:pointer;transition:background 0.1s;margin-bottom:2px;border:1.5px solid transparent;" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='transparent'">
+          <div class="marathon-drag-handle" style="width:20px;height:20px;border-radius:50%;background:${color};color:#fff;font-size:9px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:grab;touch-action:none;">${sIdx+1}</div>
+          <div onclick="panToMarathonStop(${aIdx},${sIdx})" style="flex:1;min-width:0;">
             <div style="font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(stop.name)}</div>
             ${stop.address ? `<div style="font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(stop.address)}</div>` : ''}
           </div>
+          <button onclick="event.stopPropagation();removeMarathonStop(${aIdx},${sIdx})" style="flex-shrink:0;width:28px;height:28px;border-radius:6px;border:none;background:rgba(239,68,68,0.1);color:#EF4444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;" title="Remove stop">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>`;
       });
     }
@@ -10783,37 +10786,180 @@ async function rerouteMarathonArea() {
   if (marathonCurrentIndex >= 0) await rerouteOneMarathonArea(marathonCurrentIndex);
 }
 
+function removeMarathonStop(areaIdx, stopIdx) {
+  const area = marathonQueue[areaIdx];
+  if (!area || !area.stops) return;
+  const removed = area.stops.splice(stopIdx, 1)[0];
+  area.stopCount = area.stops.length;
+  // If area is now empty, remove the whole area
+  if (area.stops.length === 0) {
+    marathonQueue.splice(areaIdx, 1);
+    if (marathonCurrentIndex >= marathonQueue.length) marathonCurrentIndex = marathonQueue.length - 1;
+  }
+  showMarathonStopList();
+  toast(`Removed ${removed ? removed.name : 'stop'}. Tap Reroute to update.`);
+}
+
 function initMarathonStopDragAll() {
   const panel = document.getElementById('marathon-stop-list');
   if (!panel) return;
-  let dragAreaIdx = null, dragStopIdx = null;
+
+  let dragEl = null, dragAreaIdx = null, dragStopIdx = null;
+  let ghostEl = null, startY = 0, scrollParent = null;
+  let dropTarget = null;
+
+  // Find the scrollable container
+  scrollParent = panel.querySelector('div[style*="overflow-y"]') || panel;
+
+  function getAllRows() {
+    return Array.from(panel.querySelectorAll('.marathon-stop-row'));
+  }
+
+  function findDropTarget(y) {
+    const rows = getAllRows();
+    for (const row of rows) {
+      if (row === dragEl) continue;
+      const rect = row.getBoundingClientRect();
+      if (y >= rect.top && y <= rect.bottom) return row;
+    }
+    return null;
+  }
+
+  function clearHighlights() {
+    getAllRows().forEach(r => {
+      r.style.borderTop = '1.5px solid transparent';
+      r.style.borderBottom = '1.5px solid transparent';
+    });
+  }
+
+  function highlightDrop(target, y) {
+    clearHighlights();
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    if (y < mid) {
+      target.style.borderTop = '2px solid var(--orange)';
+    } else {
+      target.style.borderBottom = '2px solid var(--orange)';
+    }
+  }
+
+  function executeDrop(target, y) {
+    if (!target || dragAreaIdx === null || dragStopIdx === null) return;
+    const targetAreaIdx = parseInt(target.dataset.areaIdx);
+    const targetStopIdx = parseInt(target.dataset.stopIdx);
+    const rect = target.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    const insertBefore = y < mid;
+
+    const srcArea = marathonQueue[dragAreaIdx];
+    if (!srcArea || !srcArea.stops) return;
+
+    // Remove from source
+    const [moved] = srcArea.stops.splice(dragStopIdx, 1);
+    srcArea.stopCount = srcArea.stops.length;
+
+    // Insert into target area
+    const destArea = marathonQueue[targetAreaIdx];
+    if (!destArea || !destArea.stops) return;
+
+    // Adjust target index if same area and source was before target
+    let insertIdx = targetStopIdx;
+    if (dragAreaIdx === targetAreaIdx && dragStopIdx < targetStopIdx) insertIdx--;
+    if (!insertBefore) insertIdx++;
+    insertIdx = Math.max(0, Math.min(insertIdx, destArea.stops.length));
+
+    destArea.stops.splice(insertIdx, 0, moved);
+    destArea.stopCount = destArea.stops.length;
+
+    // Remove empty source area
+    if (srcArea.stops.length === 0) {
+      marathonQueue.splice(dragAreaIdx, 1);
+      if (marathonCurrentIndex >= marathonQueue.length) marathonCurrentIndex = marathonQueue.length - 1;
+    }
+
+    const crossArea = dragAreaIdx !== targetAreaIdx;
+    showMarathonStopList();
+    toast(crossArea
+      ? `Moved ${moved.name} to Area ${targetAreaIdx + 1}. Tap Reroute on affected areas.`
+      : `Reordered. Tap Reroute to recalculate.`);
+  }
+
+  // ── Desktop: HTML5 Drag ──
   panel.querySelectorAll('.marathon-stop-row').forEach(row => {
     row.addEventListener('dragstart', e => {
+      dragEl = row;
       dragAreaIdx = parseInt(row.dataset.areaIdx);
       dragStopIdx = parseInt(row.dataset.stopIdx);
       row.style.opacity = '0.4';
       e.dataTransfer.effectAllowed = 'move';
     });
-    row.addEventListener('dragend', () => { row.style.opacity = '1'; });
+    row.addEventListener('dragend', () => {
+      row.style.opacity = '1';
+      clearHighlights();
+      dragEl = null; dragAreaIdx = null; dragStopIdx = null;
+    });
     row.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      row.style.borderTop = '2px solid var(--orange)';
+      highlightDrop(row, e.clientY);
     });
-    row.addEventListener('dragleave', () => { row.style.borderTop = ''; });
+    row.addEventListener('dragleave', () => {
+      row.style.borderTop = '1.5px solid transparent';
+      row.style.borderBottom = '1.5px solid transparent';
+    });
     row.addEventListener('drop', e => {
       e.preventDefault();
-      row.style.borderTop = '';
-      const dropAreaIdx = parseInt(row.dataset.areaIdx);
-      const dropStopIdx = parseInt(row.dataset.stopIdx);
-      if (dragAreaIdx !== dropAreaIdx || dragStopIdx === dropStopIdx) return;
-      const area = marathonQueue[dragAreaIdx];
-      if (!area || !area.stops) return;
-      const [moved] = area.stops.splice(dragStopIdx, 1);
-      area.stops.splice(dropStopIdx, 0, moved);
-      showMarathonStopList();
-      toast('Stop order updated. Tap Reroute to recalculate.');
+      clearHighlights();
+      executeDrop(row, e.clientY);
     });
+  });
+
+  // ── Mobile: Touch Drag ──
+  panel.querySelectorAll('.marathon-drag-handle').forEach(handle => {
+    const row = handle.closest('.marathon-stop-row');
+    if (!row) return;
+
+    handle.addEventListener('touchstart', e => {
+      e.preventDefault();
+      dragEl = row;
+      dragAreaIdx = parseInt(row.dataset.areaIdx);
+      dragStopIdx = parseInt(row.dataset.stopIdx);
+      startY = e.touches[0].clientY;
+
+      // Create ghost
+      ghostEl = row.cloneNode(true);
+      ghostEl.style.cssText = 'position:fixed;z-index:9999;width:' + row.offsetWidth + 'px;pointer-events:none;opacity:0.85;background:var(--bg-card);border:2px solid var(--orange);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.3);transform:scale(1.03);';
+      ghostEl.style.top = row.getBoundingClientRect().top + 'px';
+      ghostEl.style.left = row.getBoundingClientRect().left + 'px';
+      document.body.appendChild(ghostEl);
+      row.style.opacity = '0.3';
+    }, { passive: false });
+
+    handle.addEventListener('touchmove', e => {
+      if (!dragEl || !ghostEl) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      ghostEl.style.top = (touch.clientY - 20) + 'px';
+
+      // Find drop target
+      const target = findDropTarget(touch.clientY);
+      highlightDrop(target, touch.clientY);
+      dropTarget = target;
+    }, { passive: false });
+
+    handle.addEventListener('touchend', e => {
+      if (!dragEl) return;
+      if (ghostEl) { ghostEl.remove(); ghostEl = null; }
+      dragEl.style.opacity = '1';
+      clearHighlights();
+
+      if (dropTarget) {
+        const lastTouch = e.changedTouches[0];
+        executeDrop(dropTarget, lastTouch.clientY);
+      }
+      dragEl = null; dragAreaIdx = null; dragStopIdx = null; dropTarget = null;
+    }, { passive: false });
   });
 }
 
