@@ -4217,7 +4217,7 @@ async function routeStops() {
     else if (profile.homebase) { toast('Finding home base...'); const hc = await geocodeAddress(profile.homebase); if (hc) { waypoints.push(hc); startLabel = 'Home'; profile.homebaseLat=hc.lat; profile.homebaseLng=hc.lng; } else { toast('Could not find home base.'); return; } }
     else { toast('No home base set. Choose "My Location" or "Custom" start.'); return; }
   } else if (plannerStartMode === 'gps') {
-    try { toast('Getting your location...'); const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:10000})); waypoints.push({ lat: pos.coords.latitude, lng: pos.coords.longitude }); startLabel = 'Current Location'; } catch(e) { toast('Could not get GPS.'); return; }
+    try { toast('Getting your location...'); const gps = await getKnownPosition(); waypoints.push(gps); startLabel = 'Current Location'; } catch(e) { toast('Could not get GPS.'); return; }
   } else {
     const addr = document.getElementById('planner-start-input').value.trim(); if (!addr) { toast('Enter a starting address.'); return; }
     toast('Finding address...'); const sc = await geocodeAddress(addr); if (sc) { waypoints.push(sc); startLabel = addr; } else { toast('Could not find that address.'); return; }
@@ -4233,6 +4233,15 @@ async function routeStops() {
   if (waypoints.length < 2) { toast('Not enough locations.'); return; }
 
   toast('Mapping route...');
+  
+  // Switch to map view FIRST so route is visible during calculation
+  document.getElementById('planner-view').classList.remove('active');
+  currentView = 'pins';
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.nav-tab[data-view="pins"]').classList.add('active');
+  // Trigger map resize since it was hidden behind planner
+  setTimeout(() => google.maps.event.trigger(map, 'resize'), 100);
+  
   const routeInfo = await drawRoadRoute(waypoints);
   
   // REORDER PLANNER STOPS to match optimized route
@@ -4262,11 +4271,6 @@ async function routeStops() {
     }
   }
   
-  document.getElementById('planner-view').classList.remove('active');
-  currentView = 'pins';
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.querySelector('.nav-tab[data-view="pins"]').classList.add('active');
-
   const stopCount = todayStops.length;
   if (routeInfo) {
     const traffic = routeInfo.minsTraffic && routeInfo.minsTraffic !== routeInfo.mins ? ` (${routeInfo.minsTraffic} min w/ traffic)` : '';
@@ -4298,6 +4302,9 @@ function switchTab(el, view) {
   currentView = view;
   document.getElementById('planner-view').classList.remove('active');
   document.getElementById('email-view').style.display = 'none';
+  // Hide satellite toggle in planner/email — it clips
+  const satFloat = document.getElementById('satellite-toggle-btn');
+  if (satFloat) satFloat.style.display = (view === 'pins') ? '' : 'none';
   if (view === 'planner') { document.getElementById('planner-view').classList.add('active'); initPlanner(); renderStopList(); }
   else if (view === 'email') { document.getElementById('email-view').style.display = 'flex'; document.getElementById('email-view').style.flexDirection = 'column'; }
 }
@@ -6733,6 +6740,7 @@ async function startNavigation(routeInfo, destLabel) {
   if (areaRect) { areaRect.setMap(null); areaRect = null; }
   collapseSidebar(); hideDriveButton(); initStopProgress();
   const satBtn = document.getElementById('satellite-toggle-btn'); if (satBtn) satBtn.style.display = 'none';
+  const mapCtrls = document.querySelector('.map-controls'); if (mapCtrls) mapCtrls.style.display = 'none';
   document.getElementById('nav-instruction').textContent = 'Getting your location...';
   document.getElementById('nav-street').textContent = '';
   document.getElementById('nav-step-dist').textContent = '';
@@ -6897,6 +6905,7 @@ function exitNavigation() {
   
   map.setZoom(12); expandSidebar();
   const satBtnRestore = document.getElementById('satellite-toggle-btn'); if (satBtnRestore) satBtnRestore.style.display = '';
+  const mapCtrlsRestore = document.querySelector('.map-controls'); if (mapCtrlsRestore) mapCtrlsRestore.style.display = '';
   
   // If there was a route, ask if they want to keep it
   if (hadRoute) {
