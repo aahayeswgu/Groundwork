@@ -403,13 +403,14 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 .map-ctrl-btn.scouting, .nav-voice-btn.scouting { background:#8B5CF6 !important; color:#fff !important; border-color:#8B5CF6 !important; animation:scoutPulse 2s ease-in-out infinite; }
 @keyframes scoutPulse { 0%,100% { box-shadow:0 0 0 0 rgba(139,92,246,0.4); } 50% { box-shadow:0 0 0 10px rgba(139,92,246,0); } }
 .scout-toast {
-  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:9999;
-  background:rgba(17,17,17,0.95); color:#fff; padding:24px 32px; border-radius:20px;
-  font-family:'DM Sans',sans-serif; max-width:380px; width:calc(100% - 40px);
-  box-shadow:0 20px 60px rgba(0,0,0,0.5); border:1.5px solid #8B5CF6;
-  text-align:center; animation:scoutSlideIn 0.3s ease-out;
+  position:fixed; top:0; left:0; right:0; bottom:0; z-index:9999;
+  background:rgba(10,10,10,0.92); color:#fff; 
+  font-family:'DM Sans',sans-serif;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:40px 24px;
+  animation:scoutSlideIn 0.25s ease-out;
 }
-@keyframes scoutSlideIn { from { opacity:0; transform:translate(-50%,-50%) scale(0.9); } to { opacity:1; transform:translate(-50%,-50%) scale(1); } }
+@keyframes scoutSlideIn { from { opacity:0; } to { opacity:1; } }
 .add-pin-hint {
   position:absolute; top:60px; left:50%; transform:translateX(-50%); z-index:10;
   background:var(--orange); color:#fff; padding:10px 20px; border-radius:20px;
@@ -7480,7 +7481,8 @@ let scoutProspects = [];
 let scoutCurrentIndex = 0;
 let scoutRecognition = null;
 let scoutOverlay = null;
-let scoutRadius = 800; // Start at ~0.5 mile, can extend to 1600 then 3200
+let scoutRadius = 800;
+let scoutSkipped = new Set(); // place_ids the user said "no" to — persists across scout sessions until page reload
 
 function toggleScoutMode() {
   if (scoutActive) { endScoutMode(); return; }
@@ -7555,7 +7557,7 @@ async function startScoutMode() {
   const filtered = unique.filter(r => {
     if (EXCLUDED_CHAINS.test(r.name)) return false;
     if (EXCLUDED_NAME_PATTERNS.test(r.name)) return false;
-    // Check if already a pin
+    if (scoutSkipped.has(r.place_id) || scoutSkipped.has(r.name)) return false;
     const alreadyPinned = pins.some(p => 
       (p.placeId && p.placeId === r.place_id) ||
       (p.title.toLowerCase() === r.name.toLowerCase()) ||
@@ -7724,6 +7726,9 @@ async function handleScoutYes() {
   if (!scoutActive || scoutCurrentIndex >= scoutProspects.length) return;
   const prospect = scoutProspects[scoutCurrentIndex];
   
+  // Stop listening
+  if (scoutRecognition) { try { scoutRecognition.abort(); } catch(e) {} scoutRecognition = null; }
+  
   speak(`Routing to ${prospect.name}.`);
   showScoutOverlay('Routing to ' + prospect.name, 'Adding to your stops and rerouting...');
   
@@ -7752,7 +7757,7 @@ async function handleScoutYes() {
   
   // Add to today's stops as NEXT stop (priority)
   if (!todayStops.includes(newPin.id)) {
-    todayStops.unshift(newPin.id); // Insert at front = next stop
+    todayStops.unshift(newPin.id);
     savePlannerDay();
   }
   
@@ -7772,14 +7777,21 @@ async function handleScoutYes() {
     updateStopProgressUI();
   }
   
-  // End scout mode and reroute
-  endScoutMode();
+  // Dismiss overlay now — don't wait for reroute
+  if (scoutOverlay) { scoutOverlay.remove(); scoutOverlay = null; }
+  scoutActive = false;
+  scoutProspects = [];
+  scoutCurrentIndex = 0;
+  scoutRadius = 800;
+  const navBtn = document.getElementById('nav-scout-btn');
+  const mapBtn = document.getElementById('btn-scout');
+  if (navBtn) navBtn.classList.remove('scouting');
+  if (mapBtn) mapBtn.classList.remove('scouting');
   
   // Reroute from current position with this as next stop
   if (navActive || window._lastRouteWaypoints) {
     await rerouteFromCurrentPosition();
   } else {
-    // Not navigating — build a quick route to this business
     let origin;
     try {
       const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
@@ -7800,34 +7812,36 @@ async function handleScoutYes() {
 
 function handleScoutNo() {
   if (!scoutActive) return;
+  // Remember this business so it won't appear again
+  const prospect = scoutProspects[scoutCurrentIndex];
+  if (prospect) scoutSkipped.add(prospect.place_id || prospect.name);
   speak('Skipping.');
   scoutCurrentIndex++;
   setTimeout(() => announceScoutProspect(), 1200);
 }
 
 function showScoutOverlay(title, subtitle, current, total, address) {
-  // Remove existing
   if (scoutOverlay) scoutOverlay.remove();
   
-  const progress = (current && total) ? `<div style="margin-bottom:12px;font-size:11px;color:rgba(255,255,255,0.5);font-weight:600;">${current} of ${total} prospect${total > 1 ? 's' : ''}</div>` : '';
-  const addrHtml = address ? `<div style="margin-top:6px;font-size:12px;color:rgba(255,255,255,0.5);">${escHtml(address)}</div>` : '';
+  const progress = (current && total) ? `<div style="font-size:16px;color:rgba(255,255,255,0.4);font-weight:700;margin-bottom:16px;">${current} of ${total}</div>` : '';
+  const addrHtml = address ? `<div style="margin-top:10px;font-size:18px;color:rgba(255,255,255,0.4);">${escHtml(address)}</div>` : '';
   const controlsHtml = (current && total) ? `
-    <div style="display:flex;gap:10px;margin-top:16px;justify-content:center;">
-      <button onclick="handleScoutYes()" style="padding:10px 24px;border:none;border-radius:10px;background:#22C55E;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✓ Yes, stop here</button>
-      <button onclick="handleScoutNo()" style="padding:10px 24px;border:none;border-radius:10px;background:rgba(255,255,255,0.15);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">✕ Next</button>
+    <div style="display:flex;gap:16px;margin-top:32px;">
+      <button onclick="handleScoutYes()" style="padding:18px 48px;border:none;border-radius:16px;background:#22C55E;color:#fff;font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;min-width:160px;">✓ Yes</button>
+      <button onclick="handleScoutNo()" style="padding:18px 48px;border:none;border-radius:16px;background:rgba(255,255,255,0.12);color:#fff;font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;min-width:160px;">✕ Next</button>
     </div>` : '';
-  const cancelHtml = `<button onclick="endScoutMode()" style="margin-top:12px;background:none;border:none;color:rgba(255,255,255,0.3);font-size:12px;cursor:pointer;font-family:inherit;">End Scout Mode</button>`;
+  const cancelHtml = `<button onclick="endScoutMode()" style="margin-top:20px;background:none;border:none;color:rgba(255,255,255,0.25);font-size:16px;cursor:pointer;font-family:inherit;padding:8px 16px;">End Scout Mode</button>`;
   
   const el = document.createElement('div');
   el.className = 'scout-toast';
   el.innerHTML = `
     ${progress}
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
-      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8B5CF6;">Scout Mode</span>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+      <span style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#8B5CF6;">Scout Mode</span>
     </div>
-    <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.3;">${escHtml(title)}</div>
-    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:4px;">${subtitle}</div>
+    <div style="font-size:36px;font-weight:900;color:#fff;line-height:1.2;text-align:center;max-width:600px;">${escHtml(title)}</div>
+    <div style="font-size:22px;color:rgba(255,255,255,0.6);margin-top:8px;text-align:center;">${subtitle}</div>
     ${addrHtml}
     ${controlsHtml}
     ${cancelHtml}
@@ -7859,16 +7873,17 @@ function showScoutOverlayExtend(currentLabel, nextLabel, nextRadius, gpsPos) {
   const el = document.createElement('div');
   el.className = 'scout-toast';
   el.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
-      <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8B5CF6;">Scout Mode</span>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></svg>
+      <span style="font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#8B5CF6;">Scout Mode</span>
     </div>
-    <div style="font-size:20px;font-weight:800;color:#fff;line-height:1.3;">No prospects within ${currentLabel}</div>
-    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:6px;">Extend search to ${nextLabel}?</div>
-    <div style="display:flex;gap:10px;margin-top:16px;justify-content:center;">
-      <button onclick="extendScoutRadius(${nextRadius})" style="padding:10px 24px;border:none;border-radius:10px;background:#8B5CF6;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Yes, extend</button>
-      <button onclick="endScoutMode()" style="padding:10px 24px;border:none;border-radius:10px;background:rgba(255,255,255,0.15);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">No, stop</button>
+    <div style="font-size:36px;font-weight:900;color:#fff;line-height:1.2;text-align:center;">No prospects within ${currentLabel}</div>
+    <div style="font-size:22px;color:rgba(255,255,255,0.6);margin-top:12px;text-align:center;">Extend search to ${nextLabel}?</div>
+    <div style="display:flex;gap:16px;margin-top:32px;">
+      <button onclick="extendScoutRadius(${nextRadius})" style="padding:18px 48px;border:none;border-radius:16px;background:#8B5CF6;color:#fff;font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;min-width:160px;">Yes, extend</button>
+      <button onclick="endScoutMode()" style="padding:18px 48px;border:none;border-radius:16px;background:rgba(255,255,255,0.12);color:#fff;font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;min-width:160px;">No, stop</button>
     </div>
+    <button onclick="endScoutMode()" style="margin-top:20px;background:none;border:none;color:rgba(255,255,255,0.25);font-size:16px;cursor:pointer;font-family:inherit;padding:8px 16px;">End Scout Mode</button>
   `;
   document.body.appendChild(el);
   scoutOverlay = el;
@@ -7955,6 +7970,7 @@ async function extendScoutRadius(newRadius) {
   const filtered = unique.filter(r => {
     if (EXCLUDED_CHAINS.test(r.name)) return false;
     if (EXCLUDED_NAME_PATTERNS.test(r.name)) return false;
+    if (scoutSkipped.has(r.place_id) || scoutSkipped.has(r.name)) return false;
     const alreadyPinned = pins.some(p => 
       (p.placeId && p.placeId === r.place_id) ||
       (p.title.toLowerCase() === r.name.toLowerCase()) ||
