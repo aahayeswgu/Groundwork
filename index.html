@@ -7726,11 +7726,12 @@ async function handleScoutYes() {
   if (!scoutActive || scoutCurrentIndex >= scoutProspects.length) return;
   const prospect = scoutProspects[scoutCurrentIndex];
   
-  // Stop listening
+  // Stop listening + dismiss overlay IMMEDIATELY
   if (scoutRecognition) { try { scoutRecognition.abort(); } catch(e) {} scoutRecognition = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  endScoutMode();
   
-  speak(`Routing to ${prospect.name}.`);
-  showScoutOverlay('Routing to ' + prospect.name, 'Adding to your stops and rerouting...');
+  toast('📍 ' + prospect.name + ' — pinning and routing...');
   
   // Auto-pin the business
   const newPin = {
@@ -7755,16 +7756,15 @@ async function handleScoutYes() {
   addMarkerToMap(newPin);
   renderPinList();
   
-  // Add to today's stops as NEXT stop (priority)
+  // Add to today's stops as NEXT stop
   if (!todayStops.includes(newPin.id)) {
     todayStops.unshift(newPin.id);
     savePlannerDay();
   }
   
   logActivity('Scout: routed to ' + prospect.name);
-  toast('📍 ' + prospect.name + ' pinned and routing!');
   
-  // If actively navigating, insert into navStopWaypoints as next unvisited stop
+  // If actively navigating, insert into navStopWaypoints
   if (navActive && navStopWaypoints.length > 0) {
     const nextUnvisitedIdx = navStopWaypoints.findIndex(s => !s.visited);
     const scoutStop = { id: newPin.id, lat: newPin.lat, lng: newPin.lng, title: newPin.title, visited: false };
@@ -7775,38 +7775,35 @@ async function handleScoutYes() {
     }
     navTotalStops = navStopWaypoints.length;
     updateStopProgressUI();
+    await rerouteFromCurrentPosition();
+    return;
   }
   
-  // Dismiss overlay now — don't wait for reroute
-  if (scoutOverlay) { scoutOverlay.remove(); scoutOverlay = null; }
-  scoutActive = false;
-  scoutProspects = [];
-  scoutCurrentIndex = 0;
-  scoutRadius = 800;
-  const navBtn = document.getElementById('nav-scout-btn');
-  const mapBtn = document.getElementById('btn-scout');
-  if (navBtn) navBtn.classList.remove('scouting');
-  if (mapBtn) mapBtn.classList.remove('scouting');
+  // Not navigating — build a direct route from GPS to this business
+  let origin;
+  try {
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
+    origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+  } catch(e) {
+    // No GPS — just show pin on map, zoom to it
+    map.panTo({ lat: newPin.lat, lng: newPin.lng });
+    map.setZoom(15);
+    toast('📍 ' + prospect.name + ' pinned! Open planner to route.');
+    return;
+  }
   
-  // Reroute from current position with this as next stop
-  if (navActive || window._lastRouteWaypoints) {
-    await rerouteFromCurrentPosition();
+  const wp = [origin, { lat: newPin.lat, lng: newPin.lng }];
+  const info = await drawRoadRoute(wp, false);
+  if (info) {
+    window._lastRouteWaypoints = wp;
+    window._lastRouteInfo = info;
+    window._lastRouteDest = prospect.name;
+    showDriveButton();
+    toast(`📍 ${prospect.name} — ${info.miles} mi, ~${info.mins} min`);
   } else {
-    let origin;
-    try {
-      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 5000 }));
-      origin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    } catch(e) {
-      origin = { lat: newPin.lat, lng: newPin.lng };
-    }
-    const wp = [origin, { lat: newPin.lat, lng: newPin.lng }];
-    const info = await drawRoadRoute(wp, false);
-    if (info) {
-      window._lastRouteWaypoints = wp;
-      window._lastRouteInfo = info;
-      window._lastRouteDest = prospect.name;
-      showDriveButton();
-    }
+    map.panTo({ lat: newPin.lat, lng: newPin.lng });
+    map.setZoom(15);
+    toast('📍 ' + prospect.name + ' pinned! Route manually from planner.');
   }
 }
 
