@@ -11278,20 +11278,20 @@ async function askGeminiAboutBusiness(name, address) {
 
 
 
-  const prompt = `You are a sales intelligence assistant for Gillman Services, a construction staffing company in Tampa, FL. 
-A field sales rep is standing near this business and wants a quick briefing before walking in.
+  const prompt = `You are a pitch coach for Gillman Services, a construction staffing company in Tampa, FL. A veteran field sales rep is about to walk into this business. They already know what the business does — don't explain it to them. They need angles.
 
 Business: ${name}
 Location: ${address || 'Tampa area, FL'}
 
-Provide a concise sales briefing with these sections (use emoji bullets, keep each point to 1-2 sentences):
-🏗️ **What they do** — type of construction/trades work
-📏 **Size estimate** — small/medium/large operation, any indicators
-👷 **Staffing angle** — why they might need construction staffing, seasonal patterns, project types
-💬 **Talking points** — 2-3 specific things to mention when you walk in
-⚠️ **Watch out for** — any potential objections or things to know
+Give exactly this, nothing else:
 
-Keep the total response under 200 words. Be specific to construction staffing, not generic sales advice.`;
+🎯 **Your angle** — One specific pain point this type of business likely has that Gillman solves. Be concrete (e.g. "They probably lose guys to bigger GCs mid-project" not "They may need staffing help"). One sentence.
+
+💬 **Walk-in line** — A natural opening line or question the rep can actually say out loud when they walk in. Make it sound human, not salesy. One sentence.
+
+💡 **Insider tip** — One piece of industry-specific knowledge about this trade that makes the rep sound like they understand the business. Could be seasonal patterns, common project pain, permit/inspection bottlenecks, supply chain issues, whatever is most relevant. One sentence.
+
+No fluff, no intros, no "Here's your briefing" — just the three bullets. Under 100 words total.`;
 
   try {
     const resp = await fetch(GEMINI_URL, {
