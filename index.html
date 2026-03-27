@@ -1000,13 +1000,13 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       </div>
       <div class="discover-body">
         <div class="discover-step" id="disc-step-1">
-          <div class="discover-step-label">1. Select an area on the map</div>
+          <div class="discover-step-label" id="disc-step-1-label">1. Select an area on the map</div>
           <button class="btn btn-primary" style="width:100%;" onclick="startAreaSelect()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke-dasharray="4,3"/></svg>
             Draw Search Area
           </button>
           <div style="font-size:11px; color:var(--text-muted); margin-top:6px; text-align:center;">Click and drag to draw a rectangle on the map</div>
-          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div id="disc-marathon-section" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
             <button class="btn" style="width:100%;background:#16A34A;color:#fff;border:none;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;font-size:13px;font-weight:700;" onclick="openMarathonMode()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
               Marathon Mode
@@ -7821,6 +7821,10 @@ async function handleScoutYes() {
     return;
   }
   
+  // Collapse sidebar so route line + drive button are visible
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  
+  toast('Drawing route to ' + prospect.name + '...');
   const wp = [origin, { lat: newPin.lat, lng: newPin.lng }];
   const info = await drawRoadRoute(wp, false);
   if (info) {
@@ -7828,7 +7832,7 @@ async function handleScoutYes() {
     window._lastRouteInfo = info;
     window._lastRouteDest = prospect.name;
     showDriveButton();
-    toast(`📍 ${prospect.name} — ${info.miles} mi, ~${info.mins} min`);
+    toast(`📍 ${prospect.name} — ${info.miles} mi, ~${info.mins} min. Tap Start Driving!`);
   } else {
     map.panTo({ lat: newPin.lat, lng: newPin.lng });
     map.setZoom(15);
@@ -9291,20 +9295,38 @@ function openMarathonMode() {
   if (window.innerWidth <= 768) {
     sidebar.classList.remove('open');
   }
-  // Switch sidebar to Pins tab so planner isn't blocking the discover panel
   const pinsTab = document.querySelector('.nav-tab[data-view="pins"]');
   if (pinsTab) switchTab(pinsTab, 'pins');
   
   // Show the indicator in discover panel
   updateMarathonBuildUI();
+  updateDiscoverForMarathon();
   
-  // Open discover panel and prompt to draw first area
+  // Open discover panel
   document.getElementById('discover-panel').style.display = 'block';
+  document.getElementById('discover-panel').classList.add('active');
   document.getElementById('disc-step-1').style.display = 'block';
   document.getElementById('disc-step-2').style.display = 'none';
   document.getElementById('disc-step-3').style.display = 'none';
   
   toast(`Marathon Mode: Draw area 1 of ${count}`);
+  
+  // Auto-start drawing
+  setTimeout(() => startAreaSelect(), 300);
+}
+
+// Update discover step 1 for marathon mode
+function updateDiscoverForMarathon() {
+  const label = document.getElementById('disc-step-1-label');
+  const marathonSection = document.getElementById('disc-marathon-section');
+  if (marathonBuildMode) {
+    const areaNum = marathonQueue.length + 1;
+    label.textContent = `Draw area ${areaNum} of ${marathonTargetCount}`;
+    if (marathonSection) marathonSection.style.display = 'none';
+  } else {
+    label.textContent = '1. Select an area on the map';
+    if (marathonSection) marathonSection.style.display = '';
+  }
 }
 
 function addToMarathonFromDiscover() {
@@ -9364,17 +9386,21 @@ function addToMarathonFromDiscover() {
     // All routes collected - show finish button
     toast(`✓ Area ${routeNum} recorded! All ${marathonTargetCount} areas ready. Click "Start Marathon" to begin.`);
   } else {
-    // Prompt for next area with clear feedback
-    toast(`✓ Area ${routeNum} recorded (${stops.length} stops). Now draw area ${routeNum + 1} of ${marathonTargetCount}.`);
-    
-    // Reset discover to step 1
-    document.getElementById('disc-step-1').style.display = 'block';
-    document.getElementById('disc-step-2').style.display = 'none';
-    document.getElementById('disc-step-3').style.display = 'none';
+    // Prompt for next area — auto-start drawing
+    toast(`✓ Area ${routeNum} recorded (${stops.length} stops). Draw area ${routeNum + 1} of ${marathonTargetCount}.`);
     
     // Clear discover results
     discoverResults = [];
     clearDiscoverMarkers();
+    
+    // Show step 1 with updated marathon label
+    document.getElementById('disc-step-1').style.display = 'block';
+    document.getElementById('disc-step-2').style.display = 'none';
+    document.getElementById('disc-step-3').style.display = 'none';
+    updateDiscoverForMarathon();
+    
+    // Auto-start drawing for the next area
+    setTimeout(() => startAreaSelect(), 500);
   }
 }
 
@@ -9499,6 +9525,7 @@ function cancelMarathonBuild() {
   marathonTargetCount = 0;
   marathonQueue = [];
   document.getElementById('marathon-build-indicator').style.display = 'none';
+  updateDiscoverForMarathon();
   toast('Marathon cancelled.');
 }
 
