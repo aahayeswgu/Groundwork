@@ -6503,8 +6503,20 @@ function updateDiscoverCount() {
   const count = discoverSelected.size;
   document.getElementById('disc-selected-count').textContent = `${count} selected`;
   const btn = document.getElementById('disc-route-btn'); btn.disabled = count < 1;
-  const marathonBtn = document.getElementById('disc-marathon-btn'); if (marathonBtn) marathonBtn.disabled = count < 1;
-  btn.textContent = count ? `Route ${count} Stop${count!==1?'s':''}` : 'Route Selected';
+  const marathonBtn = document.getElementById('disc-marathon-btn');
+  if (marathonBtn) {
+    // Hide marathon button when already in marathon build mode
+    marathonBtn.style.display = marathonBuildMode ? 'none' : 'flex';
+    marathonBtn.disabled = count < 1;
+  }
+  // During marathon build, relabel Route button to "Add to Marathon"
+  if (marathonBuildMode) {
+    btn.textContent = count ? `Add ${count} to Area` : 'Add to Area';
+    btn.onclick = () => addToMarathonFromDiscover();
+  } else {
+    btn.textContent = count ? `Route ${count} Stop${count!==1?'s':''}` : 'Route Selected';
+    btn.onclick = () => routeDiscovered();
+  }
   updateSelectAllBtnLabel();
 }
 
