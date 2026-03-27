@@ -597,6 +597,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
     transition:transform 0.3s ease;
   }
   #sidebar.open { transform:translateX(0); }
+  #sidebar.collapsed { transform:translateX(-100%) !important; margin-right:0 !important; }
   .sidebar-toggle { display:none; }
 
   /* Pin panel responsive */
@@ -641,6 +642,14 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   /* Hide map controls when discover panel is open — prevents clipping */
   .discover-panel.active ~ .map-controls,
   body.discover-active .map-controls { display:none !important; }
+
+  /* Hide ALL floating elements when marathon panel or discover is active */
+  body.marathon-panel-active .map-controls,
+  body.marathon-panel-active .satellite-toggle,
+  body.marathon-panel-active .start-drive-fab,
+  body.marathon-panel-active #share-route-btn,
+  body.marathon-panel-active .shift-select-hint,
+  body.discover-active .satellite-toggle { display:none !important; }
 
   /* Discover panel above everything on mobile */
   .discover-panel { z-index:29; top:0; left:0; right:0; width:100% !important;
@@ -1383,6 +1392,16 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
             Route It
           </button>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button onclick="shareRouteToGoogleMaps()" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              Share
+            </button>
+            <button onclick="addRouteLeg()" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Leg
+            </button>
+          </div>
         </div>
       </div>
       <div class="planner-right">
@@ -1686,11 +1705,18 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       </div>
     </div>
     <div class="sheet-body" id="mobile-planner-list"></div>
-    <div style="padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:8px;">
-      <button onclick="buildRoute()" class="btn btn-primary" style="flex:1;padding:12px;font-size:14px;font-weight:700;border-radius:10px;">Route It</button>
-      <button onclick="mobileShareRoute()" class="btn" style="padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg-input);color:var(--text-primary);">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-      </button>
+    <div style="padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;">
+      <button onclick="routeStops()" class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:700;border-radius:10px;margin-bottom:8px;">Route It</button>
+      <div style="display:flex;gap:8px;">
+        <button onclick="shareRouteToGoogleMaps()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          Share
+        </button>
+        <button onclick="addRouteLeg()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Leg
+        </button>
+      </div>
     </div>
   </div>
 
@@ -4482,6 +4508,17 @@ async function routeStops() {
   currentView = 'pins';
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.querySelector('.nav-tab[data-view="pins"]').classList.add('active');
+  // Close mobile sheets so map is visible
+  if (isMobileView()) {
+    document.getElementById('mobile-planner-sheet').classList.remove('open');
+    document.getElementById('mobile-pin-sheet').classList.remove('open');
+    currentMobileTab = 'map';
+    document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
+    const mapBtn = document.querySelector('.mbb-tab[data-mtab="map"]');
+    if (mapBtn) mapBtn.classList.add('active');
+  }
+  // Close marathon overview if open
+  if (typeof hideMarathonStopList === 'function') hideMarathonStopList();
   // Trigger map resize since it was hidden behind planner
   setTimeout(() => google.maps.event.trigger(map, 'resize'), 100);
   
@@ -6981,6 +7018,8 @@ function startDrivingFromMap() {
 }
 
 function shareRouteToGoogleMaps() {
+  // If multi-leg route exists, share all legs
+  if (routeLegs.length > 0) { shareMultiLegRoute(); return; }
   const waypoints = window._lastRouteWaypoints;
   if (!waypoints || waypoints.length < 2) { toast('No route to share. Build a route first.'); return; }
 
@@ -7020,6 +7059,82 @@ function shareRouteToGoogleMaps() {
         toast('Route link copied to clipboard.');
       }).catch(() => { copyFb(url); toast('Route link copied.'); });
     } else { copyFb(url); toast('Route link copied.'); }
+  }
+}
+
+// ═══════════════════════════════════════
+// MULTI-LEG ROUTES
+// ═══════════════════════════════════════
+let routeLegs = []; // [{stops: [pinId,...], waypoints: [{lat,lng},...], info: {miles, mins}, label: ''}]
+
+function addRouteLeg() {
+  if (!window._lastRouteWaypoints || window._lastRouteWaypoints.length < 2) {
+    toast('Route your current stops first, then add a leg.');
+    return;
+  }
+  // Save current route as a leg
+  routeLegs.push({
+    stops: [...todayStops],
+    waypoints: [...window._lastRouteWaypoints],
+    info: window._lastRouteInfo ? { miles: window._lastRouteInfo.miles, mins: window._lastRouteInfo.mins } : null,
+    label: `Leg ${routeLegs.length + 1}`
+  });
+  toast(`Leg ${routeLegs.length} saved (${todayStops.length} stops). Clear stops and add the next leg, or Share to export all.`);
+  // Clear current stops so user can build next leg
+  todayStops.length = 0;
+  saveStops();
+  renderStopList();
+  if (isMobileView()) renderMobilePlannerList();
+}
+
+function shareMultiLegRoute() {
+  if (routeLegs.length === 0 && window._lastRouteWaypoints) {
+    // No legs saved — just share current route
+    shareRouteToGoogleMaps();
+    return;
+  }
+  // If there are unsaved current stops with a route, add them as a final leg
+  const allLegs = [...routeLegs];
+  if (window._lastRouteWaypoints && window._lastRouteWaypoints.length >= 2 && todayStops.length > 0) {
+    allLegs.push({
+      stops: [...todayStops],
+      waypoints: [...window._lastRouteWaypoints],
+      info: window._lastRouteInfo ? { miles: window._lastRouteInfo.miles, mins: window._lastRouteInfo.mins } : null,
+      label: `Leg ${allLegs.length + 1}`
+    });
+  }
+  if (allLegs.length === 0) { toast('No route to share.'); return; }
+  if (allLegs.length === 1) { shareRouteToGoogleMaps(); return; }
+
+  // Build per-leg URLs
+  const legs = allLegs.map((leg, idx) => {
+    const stops = leg.waypoints.slice(0, 25);
+    const namedStops = stops.map(wp => {
+      const pin = pins.find(p => Math.abs(p.lat - wp.lat) < 0.001 && Math.abs(p.lng - wp.lng) < 0.001);
+      if (pin && pin.address) return encodeURIComponent(pin.address);
+      if (pin && pin.title) return encodeURIComponent(pin.title);
+      return `${wp.lat},${wp.lng}`;
+    });
+    const url = `https://www.google.com/maps/dir/${namedStops.join('/')}`;
+    const info = leg.info ? ` · ${leg.info.miles} mi, ~${leg.info.mins} min` : '';
+    return { name: leg.label, url, stopCount: leg.stops.length, info };
+  });
+
+  // Open each leg
+  let msg = `${legs.length} legs ready:\n\n`;
+  legs.forEach((l, i) => { msg += `${i+1}. ${l.name}: ${l.stopCount} stops${l.info}\n`; });
+  msg += '\nOK → Open all in Google Maps\nCancel → Copy links';
+  const action = confirm(msg);
+
+  if (action) {
+    legs.forEach((l, i) => setTimeout(() => window.open(l.url, '_blank'), i * 500));
+    toast(`Opened ${legs.length} legs in Google Maps.`);
+  } else {
+    const text = legs.map(l => `${l.name}: ${l.url}`).join('\n\n');
+    const copyFb = (t) => { const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.left = '-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => toast('All leg links copied.')).catch(() => { copyFb(text); toast('All leg links copied.'); });
+    } else { copyFb(text); toast('All leg links copied.'); }
   }
 }
 
@@ -7119,12 +7234,22 @@ async function startNavigation(routeInfo, destLabel) {
   document.getElementById('discover-hint').classList.remove('active');
   document.getElementById('directions-panel').classList.remove('active');
   document.getElementById('btn-directions').classList.remove('active');
+  document.body.classList.remove('discover-active');
   cancelAreaSelect();
   if (areaRect) { areaRect.setMap(null); areaRect = null; }
   collapseSidebar(); hideDriveButton(); initStopProgress();
   const satBtn = document.getElementById('satellite-toggle-btn'); if (satBtn) satBtn.style.display = 'none';
   const mapCtrls = document.querySelector('.map-controls'); if (mapCtrls) mapCtrls.style.display = 'none';
   hideMarathonStopList();
+  // Close all mobile UI
+  if (isMobileView()) {
+    document.getElementById('mobile-pin-sheet').classList.remove('open');
+    document.getElementById('mobile-planner-sheet').classList.remove('open');
+    document.getElementById('mobile-more-overlay').classList.remove('open');
+    document.getElementById('pin-panel').classList.remove('open');
+    const ev = document.getElementById('email-view');
+    if (ev) { ev.style.display = 'none'; ev.classList.remove('mobile-cards-mode'); }
+  }
   document.getElementById('nav-instruction').textContent = 'Getting your location...';
   document.getElementById('nav-street').textContent = '';
   document.getElementById('nav-step-dist').textContent = '';
@@ -10500,6 +10625,12 @@ function showMarathonStopList() {
   panel.id = 'marathon-stop-list';
   panel.style.cssText = 'position:absolute;top:12px;left:12px;z-index:19;width:300px;max-height:calc(100vh - 100px);background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-lg);overflow:hidden;display:flex;flex-direction:column;font-family:DM Sans,sans-serif;';
   
+  // Mobile: full-width, no border-radius top
+  if (isMobileView()) {
+    panel.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:36;width:100%;max-height:85vh;background:var(--bg-card);border:none;border-radius:0 0 16px 16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);overflow:hidden;display:flex;flex-direction:column;font-family:DM Sans,sans-serif;';
+    document.body.classList.add('marathon-panel-active');
+  }
+  
   let html = `<div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
     <span style="font-size:13px;font-weight:700;color:var(--text-primary);">${isOverview ? 'Marathon Overview' : 'Marathon Stops'}</span>
     <div style="display:flex;gap:6px;align-items:center;">
@@ -10567,6 +10698,7 @@ function showMarathonStopList() {
 function hideMarathonStopList() {
   const existing = document.getElementById('marathon-stop-list');
   if (existing) existing.remove();
+  document.body.classList.remove('marathon-panel-active');
 }
 
 function panToMarathonStop(areaIdx, stopIdx) {
