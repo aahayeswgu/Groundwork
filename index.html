@@ -22,27 +22,28 @@
 <script src="https://apis.google.com/js/api.js" async defer></script>
 <style>
 :root {
-  --orange: #D4712A;
-  --orange-hover: #E07F35;
-  --orange-dim: rgba(212,113,42,0.12);
+  --orange: #C4692A;
+  --orange-hover: #D47830;
+  --orange-dim: rgba(196,105,42,0.12);
   --charcoal: #1E1E1E;
   --dark-gray: #4A4A4A;
   --mid-gray: #6B6B6B;
-  --light-border: #E0E0E0;
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F7F7F6;
-  --bg-card: #FFFFFF;
-  --bg-input: #FFFFFF;
-  --text-primary: #1A1A1A;
-  --text-secondary: #64666B;
-  --text-muted: #9B9DA3;
-  --shadow: 0 1px 8px rgba(0,0,0,0.06);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
-  --border: #EBEBEB;
+  --light-border: #D5CEC2;
+  --bg-primary: #E5DED3;
+  --bg-secondary: #ECE6DC;
+  --bg-card: #F3EEE6;
+  --bg-input: #F9F6F0;
+  --bg-sidebar: #EBE5DB;
+  --text-primary: #2C2519;
+  --text-secondary: #6B6355;
+  --text-muted: #9A9285;
+  --shadow: 0 1px 8px rgba(60,50,30,0.08);
+  --shadow-lg: 0 8px 32px rgba(60,50,30,0.12);
+  --border: #D5CEC2;
   --radius: 10px;
   --radius-sm: 6px;
   --planner-bg: #FDF8F0;
-  --planner-line: #E8DFD4;
+  --planner-line: #D8D0C4;
   --green: #22C55E;
   --red: #EF4444;
 }
@@ -51,6 +52,7 @@
   --bg-secondary: #22262E;
   --bg-card: #282C35;
   --bg-input: #2E333D;
+  --bg-sidebar: #22262E;
   --text-primary: #F0F0ED;
   --text-secondary: #A0A4AD;
   --text-muted: #6B7280;
@@ -66,6 +68,7 @@
   --bg-secondary: #333333;
   --bg-card: #3A3A3A;
   --bg-input: #404040;
+  --bg-sidebar: #333333;
   --text-primary: #E8E8E8;
   --text-secondary: #B0B0B0;
   --text-muted: #808080;
@@ -9030,6 +9033,9 @@ function switchMobileTab(tab) {
   if (tab === 'map') {
     // Pure map view — just the map
     switchTab(document.querySelector('.nav-tab[data-view="pins"]'), 'pins');
+    // Restore map floating controls
+    const mc = document.querySelector('.map-controls'); if (mc) mc.style.display = '';
+    const sat = document.getElementById('satellite-toggle-btn'); if (sat) sat.style.display = '';
   } else if (tab === 'pins') {
     renderMobilePinList();
     populateMobileStatusFilter();
@@ -9041,6 +9047,12 @@ function switchMobileTab(tab) {
     document.getElementById('mobile-planner-sheet').classList.add('open');
   } else if (tab === 'more') {
     openMobileMore();
+  }
+
+  // Hide map floating controls when not on map tab
+  if (tab !== 'map') {
+    const mc = document.querySelector('.map-controls'); if (mc) mc.style.display = 'none';
+    const sat = document.getElementById('satellite-toggle-btn'); if (sat) sat.style.display = 'none';
   }
 }
 
@@ -9055,6 +9067,9 @@ function closeMobileSheet(which) {
   document.querySelectorAll('.mbb-tab').forEach(t => t.classList.remove('active'));
   const mapBtn = document.querySelector('.mbb-tab[data-mtab="map"]');
   if (mapBtn) mapBtn.classList.add('active');
+  // Restore map floating controls
+  const mc = document.querySelector('.map-controls'); if (mc) mc.style.display = '';
+  const sat = document.getElementById('satellite-toggle-btn'); if (sat) sat.style.display = '';
 }
 
 // ── Mobile More Menu ──
