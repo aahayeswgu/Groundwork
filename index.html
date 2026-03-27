@@ -4880,9 +4880,11 @@ function switchTab(el, view) {
   const ev = document.getElementById('email-view');
   ev.style.display = 'none';
   ev.classList.remove('mobile-cards-mode');
-  // Hide satellite toggle in planner/email — it clips
+  // Hide satellite toggle and map controls in planner/email — they clip
   const satFloat = document.getElementById('satellite-toggle-btn');
   if (satFloat) satFloat.style.display = (view === 'pins') ? '' : 'none';
+  const mapCtrls = document.querySelector('.map-controls');
+  if (mapCtrls) mapCtrls.style.display = (view === 'pins') ? '' : 'none';
   if (view === 'planner') { document.getElementById('planner-view').classList.add('active'); initPlanner(); renderStopList(); }
   else if (view === 'email') { ev.style.display = 'flex'; ev.style.flexDirection = 'column'; }
 }
