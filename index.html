@@ -6678,56 +6678,75 @@ function shareRouteToGoogleMaps() {
 // Share marathon multi-leg routes to Google Maps
 function shareMarathonToGoogleMaps() {
   if (!marathonActive || marathonQueue.length === 0) {
-    // Fall back to normal share
     shareRouteToGoogleMaps();
     return;
   }
   
-  // Build a Google Maps URL for each area
+  // Build per-area URLs
   const legs = marathonQueue.map((area, idx) => {
     const stops = area.stops || [];
     if (stops.length === 0) return null;
-    
-    // Build waypoints: use addresses if available, otherwise coords
-    const points = stops.map(s => {
-      if (s.address) return encodeURIComponent(s.address);
-      return `${s.lat},${s.lng}`;
-    });
-    
-    // Add home base as start/end if set
+    const points = stops.map(s => s.address ? encodeURIComponent(s.address) : `${s.lat},${s.lng}`);
     if (profile.homebaseLat && profile.homebaseLng) {
       const home = profile.homebase ? encodeURIComponent(profile.homebase) : `${profile.homebaseLat},${profile.homebaseLng}`;
       points.unshift(home);
       points.push(home);
     }
-    
     const url = `https://www.google.com/maps/dir/${points.join('/')}`;
     return { name: area.name || `Area ${idx + 1}`, stopCount: stops.length, url };
   }).filter(Boolean);
   
   if (legs.length === 0) { toast('No marathon routes to share.'); return; }
   
-  // Show modal with all legs
+  // Build COMBINED route URL — all stops from all areas in sequence
+  const allPoints = [];
+  if (profile.homebaseLat && profile.homebaseLng) {
+    allPoints.push(profile.homebase ? encodeURIComponent(profile.homebase) : `${profile.homebaseLat},${profile.homebaseLng}`);
+  }
+  let totalStops = 0;
+  marathonQueue.forEach(area => {
+    (area.stops || []).forEach(s => {
+      allPoints.push(s.address ? encodeURIComponent(s.address) : `${s.lat},${s.lng}`);
+      totalStops++;
+    });
+  });
+  if (profile.homebaseLat && profile.homebaseLng) {
+    allPoints.push(profile.homebase ? encodeURIComponent(profile.homebase) : `${profile.homebaseLat},${profile.homebaseLng}`);
+  }
+  const combinedUrl = `https://www.google.com/maps/dir/${allPoints.join('/')}`;
+  const tooManyForGoogle = totalStops > 23;
+  
   const modal = document.createElement('div');
   modal.id = 'marathon-share-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;font-family:DM Sans,sans-serif;';
-  modal.innerHTML = `<div style="background:var(--bg-card);border-radius:16px;padding:24px;max-width:400px;width:calc(100% - 40px);max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+  modal.innerHTML = `<div style="background:var(--bg-card);border-radius:16px;padding:24px;max-width:420px;width:calc(100% - 40px);max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div style="font-size:18px;font-weight:700;color:var(--text-primary);">Share Marathon Routes</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text-primary);">Share Marathon</div>
       <button onclick="document.getElementById('marathon-share-modal').remove()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:20px;padding:4px;">✕</button>
     </div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">${legs.length} area${legs.length>1?'s':''} · Each opens separately in Google Maps for turn-by-turn navigation.</div>
+    
+    <!-- COMBINED FULL ROUTE -->
+    <div style="margin-bottom:16px;padding:14px;border:1.5px solid var(--orange);border-radius:10px;background:rgba(212,113,42,0.06);">
+      <div style="font-size:14px;font-weight:700;color:var(--orange);margin-bottom:4px;">Entire Route (${totalStops} stops)</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">All ${legs.length} areas combined into one route${tooManyForGoogle ? ' — Google Maps may limit to 25 waypoints' : ''}</div>
+      <div style="display:flex;gap:6px;">
+        <button onclick="window.open('${combinedUrl}','_blank');toast('Full route opened in Google Maps.')" style="flex:1;padding:10px;border:none;border-radius:8px;background:var(--orange);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">Open Full Route</button>
+        <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${combinedUrl}').then(()=>toast('Full route link copied!')).catch(()=>toast('Copy failed'))" style="padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Copy</button>
+      </div>
+    </div>
+    
+    <!-- INDIVIDUAL LEGS -->
+    <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Individual Areas</div>
     ${legs.map((leg, i) => `
-      <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;">${i+1}</div>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;transition:border-color 0.15s;" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="width:28px;height:28px;border-radius:50%;background:${MARATHON_COLORS[i % MARATHON_COLORS.length]};color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">${i+1}</div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:14px;font-weight:600;color:var(--text-primary);">${leg.name}</div>
-          <div style="font-size:12px;color:var(--text-muted);">${leg.stopCount} stop${leg.stopCount!==1?'s':''}</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-primary);">${leg.name}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${leg.stopCount} stops</div>
         </div>
-        <button onclick="window.open('${leg.url}','_blank');toast('Opened ${leg.name} in Google Maps.')" style="padding:8px 14px;border:none;border-radius:8px;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;">Open</button>
+        <button onclick="window.open('${leg.url}','_blank');toast('${leg.name} opened.')" style="padding:6px 12px;border:none;border-radius:6px;background:${MARATHON_COLORS[i % MARATHON_COLORS.length]};color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">Open</button>
       </div>
     `).join('')}
-    <button onclick="legs=[${legs.map(l => `'${l.url}'`).join(',')}];legs.forEach((u,i)=>setTimeout(()=>window.open(u,'_blank'),i*500));document.getElementById('marathon-share-modal').remove();toast('Opening all areas in Google Maps...')" style="width:100%;margin-top:8px;padding:12px;border:none;border-radius:10px;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Open All Areas</button>
   </div>`;
   document.body.appendChild(modal);
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
