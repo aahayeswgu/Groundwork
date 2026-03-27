@@ -11311,10 +11311,13 @@ Keep the total response under 200 words. Be specific to construction staffing, n
 
     _lastAiResult = text;
 
-    // Render with basic markdown: bold, line breaks
+    // Render markdown: bold, emoji section headers, bullet points, line breaks
     const html = text
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\n/g, '<br>');
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')  // bold
+      .replace(/^(\s*)\*\s+/gm, '$1• ')                   // * bullets → •
+      .replace(/^(\s*)[-–]\s+/gm, '$1• ')                 // - bullets → •
+      .replace(/\n{2,}/g, '<br><br>')                      // double newline = paragraph gap
+      .replace(/\n/g, '<br>');                             // single newline
 
     document.getElementById('ask-ai-loading').style.display = 'none';
     document.getElementById('ask-ai-result').innerHTML = html;
