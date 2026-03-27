@@ -692,6 +692,83 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   .mobile-sheet .sheet-header { padding:2px 12px 8px; }
 }
 
+/* Mobile search FAB — map view only */
+#mobile-search-fab { display:none; }
+@media (max-width:768px) {
+  /* Show FAB when on map tab, hide during nav/discover/panels */
+  body.nav-active #mobile-search-fab { display:none !important; }
+  body.discover-active #mobile-search-fab { display:none !important; }
+  body.marathon-panel-active #mobile-search-fab { display:none !important; }
+}
+
+/* ─── DESKTOP / WIDE LAYOUT ─── */
+/* 1280px — wider sidebar */
+@media (min-width:1280px) {
+  #sidebar { width:380px; min-width:380px; }
+  #sidebar.collapsed { transform:translateX(-380px); margin-right:-380px; }
+  #pin-panel { width:400px; }
+  .directions-panel { width:380px; }
+  .discover-panel { width:400px; }
+}
+
+/* 1440px — 3-column: sidebar + map + pin detail docked right */
+@media (min-width:1440px) {
+  #sidebar { width:400px; min-width:400px; }
+  #sidebar.collapsed { transform:translateX(-400px); margin-right:-400px; }
+
+  /* Pin panel docks inline — map shrinks, no overlay */
+  #map-area { position:relative; }
+  #pin-panel {
+    position:relative; transform:none !important;
+    width:0; min-width:0; overflow:hidden;
+    transition:width 0.3s ease, min-width 0.3s ease;
+    box-shadow:none; border-left:1px solid var(--border);
+    z-index:5;
+  }
+  #pin-panel.open {
+    width:380px; min-width:380px;
+  }
+}
+
+/* 1600px — give sidebar even more breathing room */
+@media (min-width:1600px) {
+  #sidebar { width:420px; min-width:420px; }
+  #sidebar.collapsed { transform:translateX(-420px); margin-right:-420px; }
+  #pin-panel.open { width:400px; min-width:400px; }
+  .email-item .ei-from { width:220px; }
+}
+
+/* ─── SIDEBAR STATS FOOTER ─── */
+#sidebar-stats {
+  padding:10px 16px;
+  border-top:1px solid var(--border);
+  background:var(--bg-card);
+  display:flex;
+  gap:0;
+  flex-shrink:0;
+}
+#sidebar-stats .stat-cell {
+  flex:1;
+  text-align:center;
+  padding:6px 4px;
+  border-right:1px solid var(--border);
+  cursor:pointer;
+  transition:background 0.15s;
+  border-radius:6px;
+}
+#sidebar-stats .stat-cell:last-child { border-right:none; }
+#sidebar-stats .stat-cell:hover { background:var(--orange-dim); }
+#sidebar-stats .stat-num {
+  font-size:18px; font-weight:800; color:var(--orange); line-height:1.1;
+  font-variant-numeric:tabular-nums;
+}
+#sidebar-stats .stat-label {
+  font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:0.5px; color:var(--text-muted); margin-top:2px;
+}
+#sidebar-stats .stat-num.green { color:var(--green); }
+#sidebar-stats .stat-num.red { color:#EF4444; }
+
 /* ─── GPS PULSE DOT ─── */
 .gps-dot { width:18px; height:18px; position:relative; }
 .gps-dot-inner {
@@ -1097,6 +1174,11 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
     <button class="satellite-toggle" id="satellite-toggle-btn" onclick="toggleSatellite()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       <span id="satellite-toggle-label">Satellite</span>
+    </button>
+    <!-- Mobile floating search button -->
+    <button id="mobile-search-fab" onclick="openMobileSearch()" style="display:none;position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:20;background:var(--bg-card);border:1px solid var(--border);border-radius:24px;padding:10px 20px;font-size:14px;font-weight:600;color:var(--text-secondary);box-shadow:0 2px 12px rgba(0,0,0,0.18);cursor:pointer;font-family:inherit;align-items:center;gap:8px;transition:all 0.2s;white-space:nowrap;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      Search pins or places...
     </button>
     <div class="add-pin-hint" id="add-pin-hint">Tap the map to drop a pin</div>
 
@@ -2151,6 +2233,55 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
     <button onclick="cancelCrop()" style="padding:14px 32px;background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);">Cancel</button>
     <button onclick="confirmCrop()" style="padding:14px 40px;background:var(--orange);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(212,113,42,0.4);">Crop & Save</button>
   </div>
+</div>
+
+<!-- ASK AI MODAL -->
+<div class="modal-overlay" id="ask-ai-modal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header" style="border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#4285F4,#34A853);display:flex;align-items:center;justify-content:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2a10 10 0 0110 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text-primary);" id="ask-ai-business-name">Business Research</div>
+          <div style="font-size:11px;color:var(--text-muted);">Powered by Gemini AI</div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="closeAskAiModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;">
+      <!-- Loading state -->
+      <div id="ask-ai-loading" style="text-align:center;padding:24px 0;">
+        <div class="discover-spinner" style="margin:0 auto 12px;"></div>
+        <div style="font-size:13px;color:var(--text-muted);">Researching this business...</div>
+      </div>
+      <!-- Result -->
+      <div id="ask-ai-result" style="display:none;font-size:14px;line-height:1.7;color:var(--text-primary);"></div>
+      <!-- Error -->
+      <div id="ask-ai-error" style="display:none;font-size:13px;color:#EF4444;padding:12px;background:rgba(239,68,68,0.08);border-radius:8px;"></div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;">
+      <button id="ask-ai-copy-btn" onclick="copyAiResult()" style="display:none;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">Copy</button>
+      <button onclick="closeAskAiModal()" class="btn btn-primary btn-sm">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE SEARCH OVERLAY -->
+<div id="mobile-search-overlay" style="display:none;position:fixed;top:0;left:0;right:0;z-index:50;background:var(--bg-card);border-bottom:1px solid var(--border);padding:10px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="flex:1;display:flex;align-items:center;background:var(--bg-input);border:1.5px solid var(--orange);border-radius:10px;padding:0 12px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="mobile-search-input" class="search-input" placeholder="Search pins or address..." oninput="onMobileSearchInput()" onkeydown="onMobileSearchKeydown(event)" autocomplete="off" style="flex:1;padding:12px 8px;font-size:15px;border:none;background:none;outline:none;color:var(--text-primary);">
+      <button id="mobile-search-clear" onclick="clearMobileSearch()" style="display:none;background:none;border:none;color:var(--text-muted);cursor:pointer;padding:4px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <button onclick="closeMobileSearch()" style="background:none;border:none;color:var(--text-secondary);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;padding:8px;white-space:nowrap;">Cancel</button>
+  </div>
+  <!-- Mobile search suggestions -->
+  <div id="mobile-search-suggestions" style="display:none;max-height:60vh;overflow-y:auto;margin-top:8px;border-radius:10px;border:1px solid var(--border);background:var(--bg-card);"></div>
 </div>
 
 <!-- TOAST -->
@@ -3545,7 +3676,7 @@ function showPinInfoWindow(id) {
           <button onclick="infoWindow.close();currentInfoWindowPinId=null;openEditPin('${pin.id}')" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:7px 10px;border-radius:6px;border:1.5px solid #D4712A;background:transparent;color:#D4712A;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#D4712A';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#D4712A'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit</button>
           <button onclick="quickDeletePin('${pin.id}')" style="display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border-radius:6px;border:1.5px solid #EF4444;background:transparent;color:#EF4444;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#EF4444';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#EF4444'" title="Delete pin"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
-        <button onclick="askClaudeAboutBusiness('${escHtml(pin.title).replace(/'/g,"\\'")}','${escHtml(pin.address||'').replace(/'/g,"\\'")}')" style="width:100%;margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:6px;border:1.5px solid #8B5CF6;background:transparent;color:#8B5CF6;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#8B5CF6';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#8B5CF6'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0110 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> Ask Claude</button>
+        <button onclick="askClaudeAboutBusiness('${escHtml(pin.title).replace(/'/g,"\\'")}','${escHtml(pin.address||'').replace(/'/g,"\\'")}')" style="width:100%;margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#4285F4'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Ask AI</button>
         <div style="margin-top:6px;text-align:center;">
           <a href="${gmapsLink}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#4285F4;font-weight:600;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4285F4" stroke-width="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -5617,6 +5748,10 @@ function openCardDetail(cardId) {
               Pin
             </button>
           </div>
+          <button onclick="askClaudeAboutBusiness('${escHtml(card.name || card.company || 'Unknown').replace(/'/g,"\\'")}','${escHtml((card.company || '') + (card.trade ? ' · ' + card.trade : '')).replace(/'/g,"\\'")}')" style="width:100%;margin-top:10px;padding:12px;border:1.5px solid #4285F4;border-radius:10px;background:transparent;color:#4285F4;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#4285F4'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Ask AI — Sales Brief
+          </button>
         </div>
       </div>
     </div>
@@ -6741,6 +6876,7 @@ function buildDiscoverInfoHtml(b, index) {
         ${pinBtnHtml}
       </div>
       ${planBtnHtml}
+      <button onclick="askClaudeAboutBusiness('${escHtml(b.name).replace(/'/g,"\\'")}','${escHtml(b.address||b.type||'').replace(/'/g,"\\'")}')" style="width:100%;margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;border-radius:6px;border:1.5px solid #4285F4;background:transparent;color:#4285F4;font-size:12px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='#4285F4'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Ask AI</button>
     </div>
   </div>`;
 }
@@ -8407,7 +8543,11 @@ function showScoutOverlay(title, subtitle, current, total, address) {
     <div style="display:flex;gap:16px;margin-top:32px;">
       <button onclick="handleScoutYes()" style="padding:18px 48px;border:none;border-radius:16px;background:#22C55E;color:#fff;font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;min-width:160px;">✓ Yes</button>
       <button onclick="handleScoutNo()" style="padding:18px 48px;border:none;border-radius:16px;background:rgba(255,255,255,0.12);color:#fff;font-size:22px;font-weight:800;cursor:pointer;font-family:inherit;min-width:160px;">✕ Next</button>
-    </div>` : '';
+    </div>
+    <button onclick="askClaudeAboutBusiness('${escHtml(title).replace(/'/g,"\\'")}','${escHtml(address||'').replace(/'/g,"\\'")}');event.stopPropagation();" style="margin-top:14px;padding:12px 32px;border:1.5px solid rgba(255,255,255,0.3);border-radius:12px;background:transparent;color:rgba(255,255,255,0.8);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;transition:all 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Ask AI before deciding
+    </button>` : '';
   const cancelHtml = `<button onclick="endScoutMode()" style="margin-top:20px;background:none;border:none;color:rgba(255,255,255,0.25);font-size:16px;cursor:pointer;font-family:inherit;padding:8px 16px;">End Scout Mode</button>`;
   
   const el = document.createElement('div');
@@ -11030,8 +11170,250 @@ function endMarathon() {
 }
 
 // ═══════════════════════════════════════
-// INPUT SANITIZATION
+// ASK AI — Gemini business research
 // ═══════════════════════════════════════
+// Get your free key at https://aistudio.google.com (free tier: 1,500 req/day)
+const GEMINI_API_KEY = 'AIzaSyDZgC9K0-l6FhjtgkbHf4CWxVC3ZCJRb48';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+let _lastAiResult = '';
+
+async function askClaudeAboutBusiness(name, address) {
+  // Show modal immediately
+  document.getElementById('ask-ai-modal').classList.add('active');
+  document.getElementById('ask-ai-business-name').textContent = name;
+  document.getElementById('ask-ai-loading').style.display = '';
+  document.getElementById('ask-ai-result').style.display = 'none';
+  document.getElementById('ask-ai-error').style.display = 'none';
+  document.getElementById('ask-ai-copy-btn').style.display = 'none';
+  _lastAiResult = '';
+
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+    document.getElementById('ask-ai-loading').style.display = 'none';
+    document.getElementById('ask-ai-error').textContent = 'Gemini API key not configured. Add your free key from aistudio.google.com to GEMINI_API_KEY in the code.';
+    document.getElementById('ask-ai-error').style.display = '';
+    return;
+  }
+
+  const prompt = `You are a sales intelligence assistant for Gillman Services, a construction staffing company in Tampa, FL. 
+A field sales rep is standing near this business and wants a quick briefing before walking in.
+
+Business: ${name}
+Location: ${address || 'Tampa area, FL'}
+
+Provide a concise sales briefing with these sections (use emoji bullets, keep each point to 1-2 sentences):
+🏗️ **What they do** — type of construction/trades work
+📏 **Size estimate** — small/medium/large operation, any indicators
+👷 **Staffing angle** — why they might need construction staffing, seasonal patterns, project types
+💬 **Talking points** — 2-3 specific things to mention when you walk in
+⚠️ **Watch out for** — any potential objections or things to know
+
+Keep the total response under 200 words. Be specific to construction staffing, not generic sales advice.`;
+
+  try {
+    const resp = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (!text) throw new Error('No response from Gemini.');
+
+    _lastAiResult = text;
+
+    // Render with basic markdown: bold, line breaks
+    const html = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+
+    document.getElementById('ask-ai-loading').style.display = 'none';
+    document.getElementById('ask-ai-result').innerHTML = html;
+    document.getElementById('ask-ai-result').style.display = '';
+    document.getElementById('ask-ai-copy-btn').style.display = '';
+  } catch(e) {
+    document.getElementById('ask-ai-loading').style.display = 'none';
+    document.getElementById('ask-ai-error').textContent = 'Research failed: ' + e.message;
+    document.getElementById('ask-ai-error').style.display = '';
+  }
+}
+
+function closeAskAiModal() {
+  document.getElementById('ask-ai-modal').classList.remove('active');
+}
+
+function copyAiResult() {
+  const text = _lastAiResult;
+  const name = document.getElementById('ask-ai-business-name').textContent;
+  const full = `Sales Brief: ${name}\n\n${text}`;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(full).then(() => toast('Copied to clipboard.'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = full; ta.style.position = 'fixed'; ta.style.left = '-9999px';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta); toast('Copied to clipboard.');
+  }
+}
+
+// ═══════════════════════════════════════
+// MOBILE SEARCH
+// ═══════════════════════════════════════
+let mobileSearchTimeout = null;
+let mobileSearchResults = [];
+let mobileSearchSelected = -1;
+
+function openMobileSearch() {
+  const overlay = document.getElementById('mobile-search-overlay');
+  overlay.style.display = 'block';
+  setTimeout(() => document.getElementById('mobile-search-input').focus(), 100);
+}
+
+function closeMobileSearch() {
+  document.getElementById('mobile-search-overlay').style.display = 'none';
+  document.getElementById('mobile-search-input').value = '';
+  document.getElementById('mobile-search-suggestions').style.display = 'none';
+  document.getElementById('mobile-search-clear').style.display = 'none';
+  mobileSearchResults = [];
+}
+
+function clearMobileSearch() {
+  document.getElementById('mobile-search-input').value = '';
+  document.getElementById('mobile-search-suggestions').style.display = 'none';
+  document.getElementById('mobile-search-clear').style.display = 'none';
+  mobileSearchResults = [];
+  document.getElementById('mobile-search-input').focus();
+}
+
+function onMobileSearchInput() {
+  const q = document.getElementById('mobile-search-input').value.trim();
+  const clearBtn = document.getElementById('mobile-search-clear');
+  clearBtn.style.display = q ? '' : 'none';
+  if (mobileSearchTimeout) clearTimeout(mobileSearchTimeout);
+  if (q.length < 2) { document.getElementById('mobile-search-suggestions').style.display = 'none'; return; }
+  mobileSearchTimeout = setTimeout(() => fetchMobileSuggestions(q), 300);
+}
+
+function onMobileSearchKeydown(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (mobileSearchSelected >= 0 && mobileSearchResults[mobileSearchSelected]) {
+      selectMobileSuggestion(mobileSearchSelected);
+    } else {
+      const q = document.getElementById('mobile-search-input').value.trim();
+      if (q) mobileGeoSearch(q);
+    }
+  } else if (e.key === 'Escape') closeMobileSearch();
+}
+
+async function fetchMobileSuggestions(q) {
+  const box = document.getElementById('mobile-search-suggestions');
+
+  // Show matching pins first
+  const pinMatches = pins.filter(p =>
+    (p.title || '').toLowerCase().includes(q.toLowerCase()) ||
+    (p.address || '').toLowerCase().includes(q.toLowerCase())
+  ).slice(0, 3);
+
+  let html = '';
+  if (pinMatches.length) {
+    html += `<div style="padding:6px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Your Pins</div>`;
+    pinMatches.forEach((p, i) => {
+      const s = statuses.find(st => st.id === p.status) || statuses[0];
+      html += `<div onclick="selectMobilePin('${p.id}')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;" ontouchstart="this.style.background='var(--bg-input)'" ontouchend="this.style.background=''">
+        <div style="width:10px;height:10px;border-radius:50%;background:${s.color};flex-shrink:0;"></div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.title)}</div>
+          <div style="font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(p.address || '')}</div>
+        </div>
+      </div>`;
+    });
+  }
+
+  box.innerHTML = html + `<div style="padding:6px 14px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Places</div><div style="padding:10px 14px;font-size:13px;color:var(--text-muted);">Searching...</div>`;
+  box.style.display = '';
+
+  if (!autocompleteService) return;
+  autocompleteService.getPlacePredictions({
+    input: q, locationBias: map?.getBounds(), componentRestrictions: { country: 'us' }
+  }, (predictions, status) => {
+    if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
+      // Remove "Searching..." placeholder
+      const searching = box.querySelector('[style*="Searching"]');
+      if (searching) searching.remove();
+      return;
+    }
+    mobileSearchResults = predictions.slice(0, 5);
+    let placesHtml = '';
+    mobileSearchResults.forEach((pred, i) => {
+      placesHtml += `<div onclick="selectMobileSuggestion(${i})" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;" ontouchstart="this.style.background='var(--bg-input)'" ontouchend="this.style.background=''">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" style="flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(pred.structured_formatting.main_text)}</div>
+          <div style="font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(pred.structured_formatting.secondary_text || '')}</div>
+        </div>
+      </div>`;
+    });
+    // Replace "Searching..." with results
+    const placeholder = box.querySelector('[style*="Searching"]');
+    if (placeholder) placeholder.outerHTML = placesHtml;
+    else box.innerHTML += placesHtml;
+  });
+}
+
+function selectMobilePin(id) {
+  closeMobileSearch();
+  flyToPin(id);
+}
+
+function selectMobileSuggestion(index) {
+  const pred = mobileSearchResults[index]; if (!pred) return;
+  closeMobileSearch();
+  placesService.getDetails({ placeId: pred.place_id, fields: ['geometry', 'formatted_address', 'name'] }, (place, status) => {
+    if (status !== google.maps.places.PlacesServiceStatus.OK || !place.geometry) return;
+    const pos = place.geometry.location;
+    map.panTo(pos); map.setZoom(16);
+    openNewPin(pos.lat(), pos.lng());
+    document.getElementById('pin-title').value = place.name || pred.structured_formatting.main_text;
+    document.getElementById('pin-address').value = place.formatted_address || pred.description;
+  });
+}
+
+function mobileGeoSearch(q) {
+  geocoder.geocode({ address: q + ', FL', componentRestrictions: { country: 'US' } }, (results, status) => {
+    if (status === 'OK' && results[0]) {
+      const pos = results[0].geometry.location;
+      closeMobileSearch();
+      map.panTo(pos); map.setZoom(16);
+      openNewPin(pos.lat(), pos.lng());
+      document.getElementById('pin-address').value = results[0].formatted_address;
+    } else toast('Address not found.');
+  });
+}
+
+// Show/hide mobile search FAB based on mobile tab
+(function() {
+  const _origSwitchMobileTab = switchMobileTab;
+  switchMobileTab = function(tab) {
+    _origSwitchMobileTab.apply(this, arguments);
+    const fab = document.getElementById('mobile-search-fab');
+    if (fab) fab.style.display = (tab === 'map' && window.innerWidth <= 768) ? 'flex' : 'none';
+  };
+  // Show on init if mobile and on map
+  window.addEventListener('load', () => {
+    const fab = document.getElementById('mobile-search-fab');
+    if (fab && window.innerWidth <= 768) fab.style.display = 'flex';
+  });
+})();
 function sanitizeInput(str) {
   if (!str) return '';
   return str
