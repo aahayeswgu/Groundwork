@@ -11261,8 +11261,9 @@ function endMarathon() {
 // ASK AI — Gemini business research
 // ═══════════════════════════════════════
 // Get your free key at https://aistudio.google.com (free tier: 1,500 req/day)
-const GEMINI_API_KEY = 'AIzaSyDZgC9K0-l6FhjtgkbHf4CWxVC3ZCJRb48';
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+// Ask AI is proxied through /api/gemini — key is server-side only
+const GEMINI_API_KEY = null; // not used client-side
+const GEMINI_URL = '/api/gemini';
 
 let _lastAiResult = '';
 
@@ -11301,24 +11302,18 @@ Keep the total response under 200 words. Be specific to construction staffing, n
   try {
     const resp = await fetch(GEMINI_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': GEMINI_API_KEY
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 600, temperature: 0.7 }
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
     });
 
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API error ${resp.status}`);
+      throw new Error(err.error || `API error ${resp.status}`);
     }
 
     const data = await resp.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    if (!text) throw new Error('No response from Gemini.');
+    const text = data.text || '';
+    if (!text) throw new Error('No response from AI.');
 
     _lastAiResult = text;
 
