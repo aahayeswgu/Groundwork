@@ -9845,8 +9845,15 @@ function toggleMarathonAreaExpand(aIdx) {
   const el = document.getElementById(`marathon-area-${aIdx}-stops`);
   if (!el) return;
   const visible = el.style.display !== 'none';
-  el.style.display = visible ? 'none' : 'block';
-  jumpToMarathonArea(aIdx);
+  
+  if (visible) {
+    // Collapse
+    el.style.display = 'none';
+  } else {
+    // Expand this area and focus/draw its route
+    el.style.display = 'block';
+    focusMarathonArea(aIdx);
+  }
 }
 
 async function focusMarathonArea(aIdx) {
