@@ -6628,11 +6628,14 @@ async function searchBusinessesInArea(bounds) {
           if (lat < strictBounds.south || lat > strictBounds.north ||
               lng < strictBounds.west || lng > strictBounds.east) return;
 
+          // Primary dedup: Google's canonical place_id (most reliable)
+          if (place.place_id && seen.has(place.place_id)) return;
           const dedupeKey = name.toLowerCase().replace(/[^a-z0-9]/g, '');
           if (seen.has(dedupeKey)) return;
           // Also dedup by coordinates (~50m proximity)
           const coordKey = `${Math.round(lat*1000)}_${Math.round(lng*1000)}`;
           if (seen.has(coordKey)) return;
+          if (place.place_id) seen.add(place.place_id);
           seen.add(dedupeKey);
           seen.add(coordKey);
 
