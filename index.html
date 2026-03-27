@@ -11262,7 +11262,7 @@ function endMarathon() {
 // ═══════════════════════════════════════
 // Get your free key at https://aistudio.google.com (free tier: 1,500 req/day)
 const GEMINI_API_KEY = 'AIzaSyDZgC9K0-l6FhjtgkbHf4CWxVC3ZCJRb48';
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
 let _lastAiResult = '';
 
@@ -11299,12 +11299,15 @@ Provide a concise sales briefing with these sections (use emoji bullets, keep ea
 Keep the total response under 200 words. Be specific to construction staffing, not generic sales advice.`;
 
   try {
-    const resp = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+    const resp = await fetch(GEMINI_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY
+      },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { maxOutputTokens: 512, temperature: 0.7 }
+        generationConfig: { maxOutputTokens: 600, temperature: 0.7 }
       })
     });
 
