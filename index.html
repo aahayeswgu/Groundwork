@@ -508,6 +508,8 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   .email-item .ei-sep { display:none; }
   .email-item .ei-actions { display:none !important; }
   .email-cat-tab { font-size:10px; padding:8px 2px; }
+  /* Mobile email compose — full width at bottom */
+  #email-compose-box { width:100% !important; min-width:0 !important; bottom:0 !important; right:0 !important; left:0 !important; border-radius:16px 16px 0 0 !important; max-height:70vh; }
 }
 @media (max-width:1100px) {
   .card-detail-grid { grid-template-columns:1fr !important; }
@@ -6903,12 +6905,16 @@ function exitNavigation() {
   const sp = document.getElementById('nav-stop-progress'); if (sp) sp.style.display = 'none';
   const sb = document.getElementById('nav-speed'); if (sb) sb.style.display = 'none';
   
-  map.setZoom(12); expandSidebar();
-  const satBtnRestore = document.getElementById('satellite-toggle-btn'); if (satBtnRestore) satBtnRestore.style.display = '';
-  const mapCtrlsRestore = document.querySelector('.map-controls'); if (mapCtrlsRestore) mapCtrlsRestore.style.display = '';
+  map.setZoom(12);
+  // Don't expand sidebar or restore controls during marathon — next area is coming
+  if (!marathonActive) {
+    expandSidebar();
+    const satBtnRestore = document.getElementById('satellite-toggle-btn'); if (satBtnRestore) satBtnRestore.style.display = '';
+    const mapCtrlsRestore = document.querySelector('.map-controls'); if (mapCtrlsRestore) mapCtrlsRestore.style.display = '';
+  }
   
-  // If there was a route, ask if they want to keep it
-  if (hadRoute) {
+  // If there was a route, ask if they want to keep it (skip during marathon)
+  if (hadRoute && !marathonActive) {
     // Make route faint
     if (routeLine) routeLine.setOptions({ strokeOpacity: 0.35, strokeWeight: 4 });
     if (window._routeBorder) window._routeBorder.setOptions({ strokeOpacity: 0.2, strokeWeight: 6 });
@@ -7509,7 +7515,7 @@ let scoutProspects = [];
 let scoutCurrentIndex = 0;
 let scoutRecognition = null;
 let scoutOverlay = null;
-let scoutRadius = 800;
+let scoutRadius = 3200; // ~2 miles
 let scoutSkipped = new Set(); // place_ids the user said "no" to — persists across scout sessions until page reload
 
 function toggleScoutMode() {
@@ -7893,7 +7899,7 @@ function endScoutMode() {
   scoutActive = false;
   scoutProspects = [];
   scoutCurrentIndex = 0;
-  scoutRadius = 800; // Reset for next time
+  scoutRadius = 3200; // Reset to 2 miles
   
   if (scoutRecognition) { try { scoutRecognition.abort(); } catch(e) {} scoutRecognition = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
@@ -8979,16 +8985,17 @@ function formatDate(iso) { const d = new Date(iso); return d.toLocaleDateString(
 function toast(msg) {
   const t = document.getElementById('toast'); 
   t.textContent = msg; 
-  // Clear any existing state first
   t.classList.remove('show');
   clearTimeout(window._toastTimer);
-  // Position: above shift-select bar if visible, or top during nav
+  // Position: top during nav, above drive button when visible, above shift-select, else bottom
   const shiftBar = document.getElementById('shift-select-bar');
   const shiftActive = shiftBar && shiftBar.classList.contains('active');
+  const driveBtn = document.getElementById('route-action-fabs');
+  const driveVisible = driveBtn && driveBtn.style.display === 'flex';
   if (navActive) { t.style.bottom = 'auto'; t.style.top = '20px'; }
+  else if (driveVisible) { t.style.bottom = '90px'; t.style.top = 'auto'; }
   else if (shiftActive) { t.style.bottom = '80px'; t.style.top = 'auto'; }
   else { t.style.bottom = '24px'; t.style.top = 'auto'; }
-  // Force reflow then show
   void t.offsetWidth;
   t.classList.add('show');
   const duration = Math.min(4000, Math.max(2000, msg.length * 35));
@@ -9516,13 +9523,11 @@ async function routeMarathonArea(index) {
   // Show marathon indicator
   showMarathonIndicator();
   
-  // Auto-start navigation
+  // DON'T auto-start navigation — let user review the route first
   if (routeInfo) {
     const traffic = routeInfo.minsTraffic && routeInfo.minsTraffic !== routeInfo.mins ? ` (${routeInfo.minsTraffic} w/ traffic)` : '';
-    toast(`Area ${index + 1}: ${route.stopCount} stops — ${routeInfo.miles} mi, ~${routeInfo.mins} min${traffic}`);
-    
-    // Start navigation
-    startNavigation(routeInfo, `Area ${index + 1} (${route.stopCount} stops)`);
+    toast(`Area ${index + 1}: ${route.stopCount} stops — ${routeInfo.miles} mi, ~${routeInfo.mins} min${traffic}. Tap Start Driving when ready.`);
+    showDriveButton();
   } else {
     toast(`Area ${index + 1} mapped: ${route.stopCount} stops`);
     showDriveButton();
