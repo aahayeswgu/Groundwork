@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
   try {
     const { prompt } = req.body;
-    if (!prompt || typeof prompt !== 'string' || prompt.length > 2000) {
+    if (!prompt || typeof prompt !== 'string' || prompt.length > 4000) {
       return res.status(400).json({ error: 'Invalid prompt' });
     }
 
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 1024, temperature: 0.7 },
+          generationConfig: { maxOutputTokens: 4096, temperature: 0.7 },
         }),
       }
     );

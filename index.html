@@ -2364,6 +2364,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
     </div>
     <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;">
       <button id="ask-ai-copy-btn" onclick="copyAiResult()" style="display:none;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">Copy</button>
+      <button id="ask-ai-learn-more-btn" onclick="learnMoreAi()" style="display:none;padding:8px 16px;border:1px solid #4285F4;border-radius:8px;background:none;color:#4285F4;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.background='#4285F4';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#4285F4'">Learn More</button>
       <button onclick="closeAskAiModal()" class="btn btn-primary btn-sm">Done</button>
     </div>
   </div>
@@ -11267,6 +11268,9 @@ const GEMINI_URL = '/api/gemini';
 let _lastAiResult = '';
 
 async function askGeminiAboutBusiness(name, address) {
+  // Store for Learn More follow-up
+  window._aiBusinessName = name;
+  window._aiBusinessAddress = address;
   // Show modal immediately
   document.getElementById('ask-ai-modal').classList.add('active');
   document.getElementById('ask-ai-business-name').textContent = name;
@@ -11274,6 +11278,7 @@ async function askGeminiAboutBusiness(name, address) {
   document.getElementById('ask-ai-result').style.display = 'none';
   document.getElementById('ask-ai-error').style.display = 'none';
   document.getElementById('ask-ai-copy-btn').style.display = 'none';
+  document.getElementById('ask-ai-learn-more-btn').style.display = 'none';
   _lastAiResult = '';
 
 
@@ -11323,6 +11328,7 @@ No fluff, no intros, no "Here's your briefing" — just the three bullets. Under
     document.getElementById('ask-ai-result').innerHTML = html;
     document.getElementById('ask-ai-result').style.display = '';
     document.getElementById('ask-ai-copy-btn').style.display = '';
+    document.getElementById('ask-ai-learn-more-btn').style.display = '';
   } catch(e) {
     document.getElementById('ask-ai-loading').style.display = 'none';
     document.getElementById('ask-ai-error').textContent = 'Research failed: ' + e.message;
@@ -11345,6 +11351,71 @@ function copyAiResult() {
     ta.value = full; ta.style.position = 'fixed'; ta.style.left = '-9999px';
     document.body.appendChild(ta); ta.select(); document.execCommand('copy');
     document.body.removeChild(ta); toast('Copied to clipboard.');
+  }
+}
+
+async function learnMoreAi() {
+  const name = window._aiBusinessName || document.getElementById('ask-ai-business-name').textContent;
+  const address = window._aiBusinessAddress || '';
+  const prevResult = _lastAiResult;
+
+  // Hide Learn More, show loading below current result
+  document.getElementById('ask-ai-learn-more-btn').style.display = 'none';
+  const resultEl = document.getElementById('ask-ai-result');
+  resultEl.innerHTML += '<br><br><div style="text-align:center;padding:12px 0;"><div class="discover-spinner" style="margin:0 auto 8px;"></div><div style="font-size:12px;color:var(--text-muted);">Digging deeper...</div></div>';
+
+  const prompt = `You are a sales intelligence researcher for Gillman Services, a construction staffing company in Tampa, FL. A field rep already got a quick pitch angle for this business and now wants deeper intel.
+
+Business: ${name}
+Location: ${address || 'Tampa area, FL'}
+
+Previous briefing the rep already has:
+${prevResult}
+
+Now provide ADDITIONAL detail they don't already have. Include:
+
+📊 **Company profile** — Estimated crew size, years in business if inferable, whether they're likely union or open shop, and approximate pay range for their core trade in the Tampa market.
+
+🔍 **Recent activity** — Any signals of growth, new projects, hiring, or challenges this type of company in this market would be facing right now.
+
+🤝 **Decision maker** — Who typically makes staffing decisions at this type of company (owner, project manager, superintendent, office manager) and the best way to get to them.
+
+🏆 **Competitive landscape** — Who else is likely calling on them for staffing, and what makes Gillman's pitch different.
+
+Do NOT repeat anything from the previous briefing. Under 300 words. No intros or fluff.`;
+
+  try {
+    const resp = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `API error ${resp.status}`);
+    }
+
+    const data = await resp.json();
+    const text = data.text || '';
+    if (!text) throw new Error('No additional info returned.');
+
+    _lastAiResult = prevResult + '\n\n' + text;
+
+    const html = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^(\s*)\*\s+/gm, '$1• ')
+      .replace(/^(\s*)[-–]\s+/gm, '$1• ')
+      .replace(/\n{2,}/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+
+    // Replace the spinner with the new content, appended below original
+    const currentHtml = resultEl.innerHTML.replace(/<br><br><div style="text-align:center.*?<\/div><\/div>/, '');
+    resultEl.innerHTML = currentHtml + '<br><hr style="border:none;border-top:1px solid var(--border);margin:12px 0;">' + html;
+    document.getElementById('ask-ai-copy-btn').style.display = '';
+  } catch(e) {
+    const currentHtml = resultEl.innerHTML.replace(/<br><br><div style="text-align:center.*?<\/div><\/div>/, '');
+    resultEl.innerHTML = currentHtml + '<br><br><span style="color:#EF4444;font-size:13px;">Learn more failed: ' + e.message + '</span>';
   }
 }
 
