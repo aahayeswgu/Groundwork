@@ -539,7 +539,8 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 @media (max-width:768px) {
   /* Email mobile: hide left panel, full-width list */
   #email-left-panel { display:none !important; }
-  #email-list-pane { max-width:none !important; min-width:0 !important; flex:1 !important; border-right:none !important; }
+  #email-list-pane { max-width:none !important; min-width:0 !important; flex:1 !important; border-right:none !important; overflow:visible !important; }
+  #email-body-wrap { overflow:visible !important; }
   #email-reader-pane { display:none !important; }
   #email-reader-empty { display:none !important; }
   /* Mobile reading mode: full-screen reader, hide list */
@@ -623,7 +624,17 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   /* Email view full screen above tab bar */
   #email-view { padding-bottom:calc(56px + env(safe-area-inset-bottom, 0px)) !important; }
   /* Mobile email compose — full width at bottom */
-  #email-compose-box { width:100% !important; min-width:0 !important; bottom:0 !important; right:0 !important; left:0 !important; border-radius:16px 16px 0 0 !important; max-height:70vh; }
+  /* Full-page compose on mobile */
+  #email-compose-box {
+    width:100% !important; min-width:0 !important; max-width:none !important;
+    position:fixed !important; top:0 !important; left:0 !important; right:0 !important; bottom:0 !important;
+    border-radius:0 !important; max-height:none !important; height:100% !important;
+    margin:0 !important; border:none !important;
+    z-index:100 !important;
+    padding-bottom:env(safe-area-inset-bottom, 0px) !important;
+  }
+  #email-compose-box .modal-body { flex:1 !important; overflow-y:auto !important; -webkit-overflow-scrolling:touch; }
+  #email-compose-box .modal-footer { padding-bottom:calc(8px + env(safe-area-inset-bottom, 0px)) !important; }
   /* Email header compact on mobile */
   #email-view > div:first-child { padding:8px 12px !important; gap:8px; }
   #email-view > div:first-child > div:last-child button:not(:last-child) { display:none !important; }
@@ -1725,7 +1736,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       </div>
     </div>
     <!-- Email Body -->
-    <div id="email-body-wrap" style="display:flex;flex:1;height:calc(100% - 57px);overflow:hidden;">
+    <div id="email-body-wrap" style="display:flex;flex:1;height:calc(100% - 57px);overflow:hidden;min-height:0;">
       <!-- Left Panel: Folders + Card Wallet (toggleable) -->
       <div id="email-left-panel" style="width:220px;border-right:1px solid var(--border);background:var(--bg-sidebar);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;">
         <!-- Toggle tabs -->
@@ -1815,7 +1826,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
         </div>
       </div>
       <!-- Email List -->
-      <div id="email-list-pane" style="position:relative;flex:1;max-width:55%;min-width:340px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;">
+      <div id="email-list-pane" style="position:relative;flex:1;max-width:55%;min-width:340px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;min-height:0;">
         <!-- Category Tabs (Gmail-style) -->
         <div class="email-cat-tabs" id="email-cat-tabs" style="display:none;">
           <button class="email-cat-tab active" data-cat="all" onclick="gmailFilterCategory('all')">All Mail</button>
@@ -1861,7 +1872,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
           </button>
           <div id="email-webview-hint" style="display:none;margin-top:12px;font-size:11px;color:var(--text-muted);line-height:1.4;">Tip: Email works best in Chrome. The app will open Chrome for sign-in.</div>
         </div>
-        <div id="email-list-scroll" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;">
+        <div id="email-list-scroll" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;display:none;min-height:0;">
           <div id="email-list"></div>
           <div id="email-load-more" style="display:none;padding:12px;text-align:center;">
             <button onclick="gmailLoadMore()" style="padding:8px 20px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">Load more</button>
