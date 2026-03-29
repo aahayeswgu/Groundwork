@@ -625,7 +625,8 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   /* Mobile email compose — full width at bottom */
   #email-compose-box { width:100% !important; min-width:0 !important; bottom:0 !important; right:0 !important; left:0 !important; border-radius:16px 16px 0 0 !important; max-height:70vh; }
   /* Email header compact on mobile */
-  #email-view > div:first-child { padding:8px 12px !important; flex-wrap:wrap; gap:8px; }
+  #email-view > div:first-child { padding:8px 12px !important; gap:8px; }
+  #email-view > div:first-child > div:last-child button:not(:last-child) { display:none !important; }
   /* Cards mode on mobile: show left panel full-width, hide list pane */
   #email-view.mobile-cards-mode #email-left-panel { display:flex !important; width:100% !important; border-right:none !important; }
   #email-view.mobile-cards-mode #email-list-pane { display:none !important; }
@@ -1703,7 +1704,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   <!-- EMAIL CLIENT VIEW -->
   <div id="email-view" style="display:none;position:absolute;inset:0;z-index:30;background:var(--bg-primary);font-family:'DM Sans',sans-serif;">
     <!-- Email Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);">
+    <div id="email-header-bar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg-sidebar);">
       <div style="display:flex;align-items:center;gap:12px;">
         <button onclick="closeEmailView()" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;font-family:inherit;padding:6px 10px;border-radius:6px;transition:all 0.15s;" onmouseover="this.style.background='var(--bg-input)'" onmouseout="this.style.background='none'">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -1724,7 +1725,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       </div>
     </div>
     <!-- Email Body -->
-    <div style="display:flex;flex:1;height:calc(100% - 57px);overflow:hidden;">
+    <div id="email-body-wrap" style="display:flex;flex:1;height:calc(100% - 57px);overflow:hidden;">
       <!-- Left Panel: Folders + Card Wallet (toggleable) -->
       <div id="email-left-panel" style="width:220px;border-right:1px solid var(--border);background:var(--bg-sidebar);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;">
         <!-- Toggle tabs -->
@@ -5249,6 +5250,8 @@ async function gmailReadEmail(msgId) {
   // Mobile: switch to full-screen reader
   if (isMobileView()) {
     document.getElementById('email-list-pane').style.display = 'none';
+    document.getElementById('email-header-bar').style.display = 'none';
+    document.getElementById('email-body-wrap').style.height = '100%';
     const rp = document.getElementById('email-reader-pane');
     rp.classList.add('mobile-reading');
     rp.style.display = 'flex';
@@ -5297,6 +5300,8 @@ function gmailBackToList() {
   rp.classList.remove('mobile-reading');
   rp.style.display = '';
   document.getElementById('email-list-pane').style.display = '';
+  document.getElementById('email-header-bar').style.display = '';
+  document.getElementById('email-body-wrap').style.height = 'calc(100% - 57px)';
   document.getElementById('email-reader').style.display = 'none';
   document.getElementById('email-reader-empty').style.display = '';
 }
