@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://maps.googleapis.com https://jxemjlafjjcjuriceetj.supabase.co https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src * data: blob:; connect-src 'self' https://maps.googleapis.com https://*.googleapis.com https://jxemjlafjjcjuriceetj.supabase.co https://*.supabase.co https://accounts.google.com; frame-src https://accounts.google.com;">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://maps.googleapis.com https://jxemjlafjjcjuriceetj.supabase.co https://apis.google.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src * data: blob:; connect-src 'self' https://maps.googleapis.com https://*.googleapis.com https://jxemjlafjjcjuriceetj.supabase.co https://*.supabase.co https://accounts.google.com; frame-src https://accounts.google.com;">
 <title>Groundwork</title>
 <!-- PWA -->
 <link rel="manifest" href="/manifest.json">
@@ -1153,11 +1154,11 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
     <div id="auth-form-login">
       <div style="margin-bottom:14px;">
         <label style="display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Email</label>
-        <input type="email" id="auth-email-login" placeholder="you@company.com" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter')document.getElementById('auth-password-login').focus()">
+        <input type="email" id="auth-email-login" autocomplete="email" placeholder="you@company.com" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter')document.getElementById('auth-password-login').focus()">
       </div>
       <div style="margin-bottom:20px;">
         <label style="display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Password</label>
-        <input type="password" id="auth-password-login" placeholder="••••••••" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter')handleLogin()">
+        <input type="password" id="auth-password-login" placeholder="••••••••" autocomplete="current-password" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter')handleLogin()">
       </div>
       <button onclick="handleLogin()" id="auth-btn-login" style="width:100%;padding:14px;border:none;border-radius:10px;background:var(--orange);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='var(--orange-hover)'" onmouseout="this.style.background='var(--orange)'">Sign In</button>
       <div style="text-align:center;margin-top:12px;">
@@ -1177,11 +1178,11 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       </div>
       <div style="margin-bottom:14px;">
         <label style="display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Email</label>
-        <input type="email" id="auth-email-signup" placeholder="you@company.com" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter')document.getElementById('auth-password-signup').focus()">
+        <input type="email" id="auth-email-signup" autocomplete="email" placeholder="you@company.com" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter')document.getElementById('auth-password-signup').focus()">
       </div>
       <div style="margin-bottom:20px;">
         <label style="display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;">Password</label>
-        <input type="password" id="auth-password-signup" placeholder="Min 6 characters" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter')handleSignup()">
+        <input type="password" id="auth-password-signup" placeholder="Min 6 characters" autocomplete="new-password" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-input);color:var(--text-primary);font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key==='Enter')handleSignup()">
       </div>
       <button onclick="handleSignup()" id="auth-btn-signup" style="width:100%;padding:14px;border:none;border-radius:10px;background:var(--orange);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:background 0.15s;" onmouseover="this.style.background='var(--orange-hover)'" onmouseout="this.style.background='var(--orange)'">Create Account</button>
     </div>
@@ -1602,7 +1603,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
         <div class="planner-start-from" id="planner-start-from">
           <div class="field-label" style="margin-bottom:4px;">Start From</div>
           <div style="display:flex;gap:6px;margin-bottom:6px;">
-            <button class="btn btn-sm planner-start-btn active" id="pstart-home" onclick="setPlannerStart('home')" style="flex:1;font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--orange-dim);color:var(--orange);">🏠 Home Base</button>
+            <button class="btn btn-sm planner-start-btn active" id="pstart-home" onclick="setPlannerStart('home')" style="flex:1;font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--orange-dim);color:var(--orange);">🏠 Home</button>
             <button class="btn btn-sm planner-start-btn" id="pstart-gps" onclick="setPlannerStart('gps')" style="flex:1;font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> My Location</button>
             <button class="btn btn-sm planner-start-btn" id="pstart-custom" onclick="setPlannerStart('custom')" style="flex:1;font-size:11px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;color:var(--text-secondary);">&#9998; Custom</button>
           </div>
@@ -2158,7 +2159,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
         <input class="field-input" id="profile-phone-num" placeholder="(555) 123-4567" type="tel">
       </div>
       <div class="field-group" style="border-top:1px solid var(--border); padding-top:16px; margin-top:8px;">
-        <div class="field-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Home Base Address</div>
+        <div class="field-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> Home Address</div>
         <input class="field-input" id="profile-homebase" placeholder="Starting address for daily routes">
         <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">Auto-fills as start/end when you plan a route.</div>
       </div>
@@ -5021,7 +5022,7 @@ function isCapacitorWebView() {
     const params = new URLSearchParams(hash.substring(1));
     const token = params.get('access_token');
     if (token) {
-      try { localStorage.setItem('gw_gmail_token', token); } catch(e) {}
+      try { sessionStorage.setItem('gw_gmail_token', token); } catch(e) {}
       // Clean the URL hash
       history.replaceState(null, '', window.location.pathname + window.location.search);
       console.log('[Groundwork] OAuth token captured from redirect');
@@ -5073,7 +5074,7 @@ function gmailConnect() {
     const pollToken = setInterval(() => {
       pollCount++;
       try {
-        const t = localStorage.getItem('gw_gmail_token');
+        const t = sessionStorage.getItem('gw_gmail_token');
         if (t && t !== gmailToken) {
           gmailToken = t;
           clearInterval(pollToken);
@@ -5113,7 +5114,7 @@ function gmailConnect() {
       callback: (resp) => {
         if (resp.error) { toast('Gmail auth failed: ' + resp.error); console.error('[Groundwork] OAuth error:', resp); return; }
         gmailToken = resp.access_token;
-        try { localStorage.setItem('gw_gmail_token', gmailToken); } catch(e) {}
+        try { sessionStorage.setItem('gw_gmail_token', gmailToken); } catch(e) {}
         onGmailConnected();
       },
       error_callback: (err) => {
@@ -5145,7 +5146,7 @@ async function gmailApiFetch(url, options) {
   try {
     const resp = await fetch(url, { ...options, headers: { 'Authorization': 'Bearer ' + gmailToken, 'Content-Type': 'application/json', ...(options?.headers || {}) } });
     if (resp.status === 401) {
-      gmailToken = null; localStorage.removeItem('gw_gmail_token');
+      gmailToken = null; sessionStorage.removeItem('gw_gmail_token');
       document.getElementById('email-connect-prompt').style.display = '';
       document.getElementById('email-list-scroll').style.display = 'none';
       document.getElementById('email-search-bar').style.display = 'none';
@@ -5325,7 +5326,8 @@ async function gmailReadEmail(msgId) {
   if(isHtml&&body){
     if(isMobileView()){
       // Mobile: render in a scrollable div (iframes fight with touch scrolling)
-      bc.innerHTML='<div style="padding:16px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;overflow-wrap:break-word;-webkit-overflow-scrolling:touch;">'+body+'</div>';
+      // Sanitize email HTML to prevent XSS
+      bc.innerHTML='<div style="padding:16px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;overflow-wrap:break-word;-webkit-overflow-scrolling:touch;">'+sanitizeEmailHtml(body)+'</div>';
       // Scope images/tables
       bc.querySelectorAll('img').forEach(i=>{i.style.maxWidth='100%';i.style.height='auto';});
       bc.querySelectorAll('table').forEach(t=>{t.style.maxWidth='100%';t.style.tableLayout='fixed';});
@@ -5334,7 +5336,7 @@ async function gmailReadEmail(msgId) {
       const iframe=document.createElement('iframe');iframe.style.cssText='width:100%;height:100%;border:none;background:#fff;';iframe.sandbox='allow-same-origin';bc.appendChild(iframe);const doc=iframe.contentDocument||iframe.contentWindow.document;doc.open();doc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}body{padding:16px;}img{max-width:100%;height:auto;}table{max-width:100%;}*{box-sizing:border-box;}</style></head><body>${body}</body></html>`);doc.close();
     }
   }
-  else{bc.innerHTML=`<div style="padding:20px 24px;font-size:14px;line-height:1.7;color:var(--text-primary);overflow-wrap:break-word;">${body||'<em style="color:var(--text-muted)">No content</em>'}</div>`;}
+  else{bc.innerHTML=`<div style="padding:20px 24px;font-size:14px;line-height:1.7;color:var(--text-primary);overflow-wrap:break-word;">${sanitizeEmailHtml(body)||'<em style="color:var(--text-muted)">No content</em>'}</div>`;}
   reader.style.display='flex'; document.getElementById('email-reader-empty').style.display='none';
 }
 
@@ -5431,7 +5433,7 @@ function emailInsertImage(){document.getElementById('email-inline-img-input').cl
 function onEmailInlineImage(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=ev=>{document.getElementById('email-body').focus();document.execCommand('insertImage',false,ev.target.result);};r.readAsDataURL(f);e.target.value='';}
 
 // Signature
-function appendSignature(el){if(gmailSignature&&el)el.innerHTML+='<br><div class="gw-signature" style="margin-top:16px;padding-top:12px;border-top:1px solid #ddd;color:#888;font-size:13px;">'+gmailSignature.replace(/\n/g,'<br>')+'</div>';}
+function appendSignature(el){if(gmailSignature&&el)el.innerHTML+='<br><div class="gw-signature" style="margin-top:16px;padding-top:12px;border-top:1px solid #ddd;color:#888;font-size:13px;">'+escHtml(gmailSignature).replace(/\n/g,'<br>')+'</div>';}
 function emailToggleSignature(){const el=document.getElementById('email-body');const ex=el.querySelector('.gw-signature');if(ex){ex.remove();toast('Signature removed.');}else{if(!gmailSignature){const s=prompt('Enter your email signature:');if(s){gmailSignature=s;try{localStorage.setItem('gw_gmail_signature',s);}catch(e){}}else return;}appendSignature(el);toast('Signature added.');}}
 
 // Attachments (compose)
@@ -5447,7 +5449,7 @@ function sendViaGmailAPI(){
   const bodyEl=document.getElementById('email-body'),bodyHtml=bodyEl.innerHTML,bodyPlain=bodyEl.innerText;
   const pinId=document.getElementById('email-compose-modal').dataset.pinId;
   if(!to){toast('Enter a recipient email.');return;}
-  if(!gmailToken){const u=`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyPlain)}`;window.open(u,'_blank');logEmailSent(to,subject,bodyPlain,pinId);closeEmailCompose();toast('Email opened in Gmail.');return;}
+  if(!gmailToken){const u=`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyPlain)}`;window.open(u,'_blank','noopener,noreferrer');logEmailSent(to,subject,bodyPlain,pinId);closeEmailCompose();toast('Email opened in Gmail.');return;}
   const boundary='gw_'+Date.now(),altB='gw_alt_'+Date.now();
   let mH=['MIME-Version: 1.0',`To: ${to}`];if(cc)mH.push(`Cc: ${cc}`);if(bcc)mH.push(`Bcc: ${bcc}`);mH.push(`Subject: ${subject}`);
   let mime;
@@ -5500,7 +5502,7 @@ document.addEventListener('keydown',function(e){
 });
 
 // Token restore on load
-try{const t=localStorage.getItem('gw_gmail_token');if(t){gmailToken=t;setTimeout(()=>{gmailApiFetch('https://www.googleapis.com/gmail/v1/users/me/profile').then(p=>{if(p&&p.emailAddress)onGmailConnected();else{gmailToken=null;localStorage.removeItem('gw_gmail_token');}});},2000);}}catch(e){}
+try{const t=sessionStorage.getItem('gw_gmail_token');if(t){gmailToken=t;setTimeout(()=>{gmailApiFetch('https://www.googleapis.com/gmail/v1/users/me/profile').then(p=>{if(p&&p.emailAddress)onGmailConnected();else{gmailToken=null;sessionStorage.removeItem('gw_gmail_token');}});},2000);}}catch(e){}
 
 // ═══════════════════════════════════════
 // BUSINESS CARD WALLET
@@ -7690,7 +7692,7 @@ function shareRouteToGoogleMaps() {
   );
 
   if (action) {
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
     toast('Opened in Google Maps.');
     
   } else {
@@ -10663,6 +10665,23 @@ document.addEventListener('click', (e) => {
 // UTILITIES
 // ═══════════════════════════════════════
 function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// Sanitize email HTML — remove scripts, event handlers, forms, iframes, objects
+function sanitizeEmailHtml(html) {
+  if (!html) return '';
+  // Remove <script> tags and contents
+  let clean = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+  // Remove <iframe>, <object>, <embed>, <applet>, <form>, <base> tags
+  clean = clean.replace(/<(iframe|object|embed|applet|form|base|link|meta)[\s\S]*?(\/?>|<\/\1>)/gi, '');
+  // Remove all on* event handlers (onclick, onerror, onload, etc.)
+  clean = clean.replace(/\s+on\w+\s*=\s*(['"])[\s\S]*?\1/gi, '');
+  clean = clean.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, '');
+  // Remove javascript: and data: URLs in href/src/action attributes
+  clean = clean.replace(/(href|src|action)\s*=\s*(['"]?)\s*(javascript|data|vbscript):/gi, '$1=$2#blocked:');
+  // Remove style expressions (IE legacy but good practice)
+  clean = clean.replace(/expression\s*\(/gi, 'blocked(');
+  return clean;
+}
 function formatDate(iso) { const d = new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
 function toast(msg) {
   const t = document.getElementById('toast'); 
@@ -11525,7 +11544,7 @@ function shareOneMarathonLeg(aIdx) {
     points.push(home);
   }
   const url = `https://www.google.com/maps/dir/${points.join('/')}`;
-  window.open(url, '_blank');
+  window.open(url, '_blank', 'noopener,noreferrer');
   toast(`Opened ${area.name || 'Area '+(aIdx+1)} in Google Maps.`);
 }
 
