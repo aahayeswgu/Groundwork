@@ -541,6 +541,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   #email-left-panel { display:none !important; }
   #email-list-pane { max-width:none !important; min-width:0 !important; flex:1 !important; border-right:none !important; }
   #email-reader-pane { display:none; }
+  #email-reader-empty { display:none !important; }
   /* Gmail-mobile card layout */
   .email-item {
     height:auto !important; min-height:auto !important;
@@ -597,7 +598,9 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   }
   .email-item .ei-actions { display:none !important; }
   .email-item:hover .ei-date { visibility:visible !important; }
+  #email-cat-tabs { display:none !important; }
   .email-cat-tab { font-size:10px; padding:8px 2px; }
+  #email-bulk-bar { display:none !important; }
   /* Hide desktop compose, show FAB */
   #email-compose-desktop { display:none !important; }
   #email-fab-compose { display:flex !important; }
@@ -1277,7 +1280,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       <button class="map-ctrl-btn" id="btn-satellite" title="Toggle satellite view" onclick="toggleSatellite()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       </button>
-      <button class="map-ctrl-btn" id="btn-scout" title="Scout Mode — find prospects nearby" onclick="toggleScoutMode()" style="background:#8B5CF6;color:#fff;border-color:#8B5CF6;">
+      <button class="map-ctrl-btn" id="btn-scout" title="Scout Mode — find prospects nearby" onclick="toggleScoutMode()" style="display:none;background:#8B5CF6;color:#fff;border-color:#8B5CF6;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
       </button>
       <!-- Import Route disabled for now - needs rebuild
@@ -1797,7 +1800,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       <!-- Email List -->
       <div id="email-list-pane" style="position:relative;flex:1;max-width:55%;min-width:340px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg-primary);display:flex;flex-direction:column;overflow:hidden;">
         <!-- Category Tabs (Gmail-style) -->
-        <div class="email-cat-tabs" id="email-cat-tabs">
+        <div class="email-cat-tabs" id="email-cat-tabs" style="display:none;">
           <button class="email-cat-tab active" data-cat="all" onclick="gmailFilterCategory('all')">All Mail</button>
           <button class="email-cat-tab" data-cat="primary" onclick="gmailFilterCategory('primary')">Primary</button>
           <button class="email-cat-tab" data-cat="social" onclick="gmailFilterCategory('social')">Social</button>
@@ -1805,7 +1808,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
           <button class="email-cat-tab" data-cat="updates" onclick="gmailFilterCategory('updates')">Updates</button>
         </div>
         <!-- Search Bar -->
-        <div id="email-search-bar" style="padding:8px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <div id="email-search-bar" style="padding:8px;border-bottom:1px solid var(--border);flex-shrink:0;display:none;">
           <div style="position:relative;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="email-search-input" placeholder="Search mail..." style="width:100%;padding:8px 8px 8px 32px;border:1px solid var(--border);border-radius:8px;background:var(--bg-input);color:var(--text-primary);font-size:13px;outline:none;font-family:inherit;" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'" onkeydown="if(event.key==='Enter')gmailSearch()">
@@ -1815,7 +1818,7 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
           </div>
         </div>
         <!-- Bulk Action Toolbar -->
-        <div id="email-bulk-bar" style="padding:4px 8px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-secondary);display:flex;align-items:center;gap:4px;">
+        <div id="email-bulk-bar" style="padding:4px 8px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-secondary);display:none;align-items:center;gap:4px;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary);font-weight:600;">
             <input type="checkbox" id="email-select-all" onchange="gmailSelectAll(this.checked)" style="accent-color:var(--orange);width:16px;height:16px;cursor:pointer;">
             <span id="email-selected-count">0 selected</span>
@@ -4976,21 +4979,43 @@ try { gmailSignature = localStorage.getItem('gw_gmail_signature') || ''; } catch
 
 function gmailConnect() {
   if (!GMAIL_CLIENT_ID || GMAIL_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID_HERE') { toast('Gmail Client ID not configured.'); return; }
-  gmailTokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: GMAIL_CLIENT_ID, scope: GMAIL_SCOPES,
-    callback: (resp) => {
-      if (resp.error) { toast('Gmail auth failed: ' + resp.error); return; }
-      gmailToken = resp.access_token;
-      try { localStorage.setItem('gw_gmail_token', gmailToken); } catch(e) {}
-      onGmailConnected();
-    },
-  });
-  gmailTokenClient.requestAccessToken();
+  // Check if Google Identity Services library loaded
+  if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+    toast('Google sign-in loading... tap again in a moment.');
+    console.warn('[Groundwork] GIS library not loaded yet. google:', typeof google);
+    // Try loading it manually
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = () => toast('Google sign-in ready — tap Sign In again.');
+    document.head.appendChild(s);
+    return;
+  }
+  try {
+    toast('Opening Google sign-in...');
+    gmailTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GMAIL_CLIENT_ID, scope: GMAIL_SCOPES,
+      callback: (resp) => {
+        if (resp.error) { toast('Gmail auth failed: ' + resp.error); console.error('[Groundwork] OAuth error:', resp); return; }
+        gmailToken = resp.access_token;
+        try { localStorage.setItem('gw_gmail_token', gmailToken); } catch(e) {}
+        onGmailConnected();
+      },
+      error_callback: (err) => {
+        console.error('[Groundwork] OAuth error_callback:', err);
+        toast('Sign-in error: ' + (err.message || err.type || 'popup blocked?'));
+      }
+    });
+    gmailTokenClient.requestAccessToken();
+  } catch(e) {
+    console.error('[Groundwork] gmailConnect error:', e);
+    toast('Sign-in error: ' + e.message);
+  }
 }
 
 function onGmailConnected() {
   document.getElementById('email-connect-prompt').style.display = 'none';
   document.getElementById('email-list-scroll').style.display = '';
+  document.getElementById('email-cat-tabs').style.display = '';
   document.getElementById('email-search-bar').style.display = '';
   document.getElementById('email-bulk-bar').style.display = 'flex';
   gmailApiFetch('https://www.googleapis.com/gmail/v1/users/me/profile').then(p => {
