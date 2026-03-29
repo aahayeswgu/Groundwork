@@ -1614,16 +1614,6 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
           <div class="planner-empty-stops">No stops planned yet.<br>Open a pin and tap "Add to Today's Plan."<br><br>💡 Tip: Drag pins from the sidebar here!</div>
         </div>
         <div class="route-btn-wrap">
-          <div style="display:flex;gap:8px;margin-bottom:8px;">
-            <button onclick="openSavedRoutesModal()" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--orange)';this.style.color='var(--orange)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-              Saved Routes
-            </button>
-            <button onclick="openMarathonMode()" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text-secondary);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:4px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--green)';this.style.color='var(--green)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-              Marathon
-            </button>
-          </div>
           <button class="btn btn-primary" style="width:100%" onclick="routeStops()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
             Route It
