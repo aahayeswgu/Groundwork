@@ -5022,6 +5022,15 @@ try { gmailSignature = localStorage.getItem('gw_gmail_signature') || ''; } catch
 // Show WebView hint if in Capacitor
 setTimeout(() => { if (isCapacitorWebView()) { const h = document.getElementById('email-webview-hint'); if (h) h.style.display = ''; } }, 500);
 
+// Proper UTF-8 base64 decode (handles multi-byte chars like emoji)
+function b64DecodeUTF8(b64) {
+  const raw = b64.replace(/-/g,'+').replace(/_/g,'/');
+  const bin = atob(raw);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
 function gmailConnect() {
   if (!GMAIL_CLIENT_ID || GMAIL_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID_HERE') { toast('Gmail Client ID not configured.'); return; }
 
@@ -5266,8 +5275,8 @@ async function gmailReadEmail(msgId) {
   const headers={}; (msg.payload?.headers||[]).forEach(h=>{headers[h.name.toLowerCase()]=h.value;});
   let bodyHtml='',bodyPlain='',attachments=[];
   function extractParts(part){
-    if(part.mimeType==='text/html'&&part.body?.data) bodyHtml=atob(part.body.data.replace(/-/g,'+').replace(/_/g,'/'));
-    else if(part.mimeType==='text/plain'&&part.body?.data) bodyPlain=atob(part.body.data.replace(/-/g,'+').replace(/_/g,'/'));
+    if(part.mimeType==='text/html'&&part.body?.data) bodyHtml=b64DecodeUTF8(part.body.data);
+    else if(part.mimeType==='text/plain'&&part.body?.data) bodyPlain=b64DecodeUTF8(part.body.data);
     if(part.filename&&part.filename.length>0&&part.body) attachments.push({filename:part.filename,mimeType:part.mimeType,size:part.body.size||0,attachmentId:part.body.attachmentId||null});
     if(part.parts) part.parts.forEach(extractParts);
   }
@@ -10557,9 +10566,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Capture the install prompt
+// Capture the install prompt (skip in Capacitor APK — already installed)
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
+  if (typeof window.Capacitor !== 'undefined' || isCapacitorWebView()) return;
   deferredInstallPrompt = e;
   // Show the install button in settings
   const btn = document.getElementById('pwa-install-btn');
