@@ -650,8 +650,6 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
   #email-view.mobile-cards-mode .card-item-name { font-size:14px; }
   #email-view.mobile-cards-mode .card-item-company { display:block; }
   /* Hide Scout Mode on mobile — nav passed to Google */
-  #btn-scout { display:none !important; }
-  #nav-scout-btn { display:none !important; }
 }
 @media (max-width:1100px) {
   .card-detail-grid { grid-template-columns:1fr !important; }
@@ -1308,8 +1306,8 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
       <button class="map-ctrl-btn" id="btn-satellite" title="Toggle satellite view" onclick="toggleSatellite()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       </button>
-      <button class="map-ctrl-btn" id="btn-scout" title="Scout Mode — find prospects nearby" onclick="toggleScoutMode()" style="display:none;background:#8B5CF6;color:#fff;border-color:#8B5CF6;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="9" stroke-dasharray="4 3"/></svg>
+      <button class="map-ctrl-btn" id="btn-quick-entry" title="Quick Entry — voice note to planner" onclick="openQuickEntry()" style="background:var(--orange);color:#fff;border-color:var(--orange);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
       </button>
       <!-- Import Route disabled for now - needs rebuild
       <button class="map-ctrl-btn" id="btn-import-route" title="Import Google Maps route" onclick="openImportRoute()">
@@ -2512,6 +2510,30 @@ textarea.field-input { resize:vertical; min-height:80px; line-height:1.5; }
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+  <!-- QUICK ENTRY OVERLAY -->
+  <div id="quick-entry-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center;">
+    <div id="quick-entry-panel" style="width:100%;max-width:480px;background:var(--bg-card);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom, 0px));display:flex;flex-direction:column;align-items:center;gap:16px;box-shadow:0 -8px 40px rgba(0,0,0,0.3);">
+      <div style="width:40px;height:4px;border-radius:2px;background:var(--border);flex-shrink:0;"></div>
+      <div style="font-size:16px;font-weight:700;color:var(--text-primary);">Quick Entry</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:-8px;" id="qe-status">Tap the mic to start speaking</div>
+      <!-- Mic button -->
+      <button id="qe-mic-btn" onclick="toggleQuickEntryMic()" style="width:72px;height:72px;border-radius:50%;background:var(--orange);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(212,113,42,0.4);transition:all 0.2s;">
+        <svg id="qe-mic-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <svg id="qe-stop-icon" width="32" height="32" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+      </button>
+      <!-- Transcript area -->
+      <textarea id="qe-transcript" placeholder="Your voice note will appear here... or type manually" style="width:100%;min-height:80px;max-height:160px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--bg-input);color:var(--text-primary);font-size:14px;line-height:1.5;resize:none;outline:none;font-family:inherit;" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      <!-- Action buttons -->
+      <div style="display:flex;gap:10px;width:100%;">
+        <button onclick="closeQuickEntry()" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:10px;background:none;color:var(--text-secondary);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">Cancel</button>
+        <button onclick="submitQuickEntry()" style="flex:2;padding:12px;border:none;border-radius:10px;background:var(--orange);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Add to Planner
+        </button>
+      </div>
+    </div>
+  </div>
 
 <script>
 // ═══════════════════════════════════════
@@ -10508,6 +10530,134 @@ function stopDictation() {
   if (btn) { btn.style.background = ''; btn.style.borderColor = ''; btn.style.color = ''; }
   if (label) label.textContent = 'Dictate';
 }
+
+// ═══════════════════════════════════════
+// QUICK ENTRY — voice note to planner
+// ═══════════════════════════════════════
+let qeRecognition = null;
+let qeActive = false;
+let qeFinalTranscript = '';
+
+function openQuickEntry() {
+  const overlay = document.getElementById('quick-entry-overlay');
+  overlay.style.display = 'flex';
+  document.getElementById('qe-transcript').value = '';
+  document.getElementById('qe-status').textContent = 'Tap the mic to start speaking';
+  qeFinalTranscript = '';
+  // Auto-start mic
+  setTimeout(() => toggleQuickEntryMic(), 300);
+}
+
+function closeQuickEntry() {
+  if (qeActive) stopQuickEntryMic();
+  document.getElementById('quick-entry-overlay').style.display = 'none';
+  document.getElementById('qe-transcript').value = '';
+}
+
+function toggleQuickEntryMic() {
+  if (qeActive) { stopQuickEntryMic(); return; }
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    toast('Speech recognition not supported. Type your note instead.');
+    return;
+  }
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  qeRecognition = new SpeechRec();
+  qeRecognition.continuous = true;
+  qeRecognition.interimResults = true;
+  qeRecognition.lang = 'en-US';
+  
+  const textarea = document.getElementById('qe-transcript');
+  qeFinalTranscript = textarea.value;
+
+  qeRecognition.onstart = () => {
+    qeActive = true;
+    const btn = document.getElementById('qe-mic-btn');
+    btn.style.background = 'var(--red)';
+    btn.style.boxShadow = '0 4px 16px rgba(220,38,38,0.4)';
+    document.getElementById('qe-mic-icon').style.display = 'none';
+    document.getElementById('qe-stop-icon').style.display = '';
+    document.getElementById('qe-status').textContent = 'Listening... tap to stop';
+  };
+
+  qeRecognition.onresult = (event) => {
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        const sep = qeFinalTranscript.length > 0 && !qeFinalTranscript.endsWith('\n') && !qeFinalTranscript.endsWith(' ') ? ' ' : '';
+        qeFinalTranscript += sep + transcript;
+        textarea.value = qeFinalTranscript;
+      } else {
+        interim = transcript;
+      }
+    }
+    if (interim) {
+      textarea.value = qeFinalTranscript + (qeFinalTranscript.length > 0 ? ' ' : '') + interim;
+    }
+  };
+
+  qeRecognition.onerror = (event) => {
+    if (event.error === 'not-allowed') {
+      toast('Microphone access denied. Check permissions.');
+    } else if (event.error !== 'no-speech') {
+      document.getElementById('qe-status').textContent = 'Mic error — type your note instead';
+    }
+    stopQuickEntryMic();
+  };
+
+  qeRecognition.onend = () => {
+    if (qeActive) {
+      try { qeRecognition.start(); } catch(e) { stopQuickEntryMic(); }
+    }
+  };
+
+  try { qeRecognition.start(); } catch(e) {
+    toast('Could not start microphone.');
+    stopQuickEntryMic();
+  }
+}
+
+function stopQuickEntryMic() {
+  qeActive = false;
+  if (qeRecognition) { try { qeRecognition.stop(); } catch(e) {} qeRecognition = null; }
+  const btn = document.getElementById('qe-mic-btn');
+  btn.style.background = 'var(--orange)';
+  btn.style.boxShadow = '0 4px 16px rgba(212,113,42,0.4)';
+  document.getElementById('qe-mic-icon').style.display = '';
+  document.getElementById('qe-stop-icon').style.display = 'none';
+  document.getElementById('qe-status').textContent = 'Tap the mic to continue, or edit below';
+}
+
+function submitQuickEntry() {
+  const text = document.getElementById('qe-transcript').value.trim();
+  if (!text) { toast('Nothing to add — speak or type a note first.'); return; }
+  
+  // Build timestamped entry
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  const entry = '[' + timeStr + '] ' + text;
+  
+  // Prepend to planner notes
+  const notesEl = document.getElementById('planner-notes');
+  const existing = notesEl ? notesEl.value : '';
+  const newNotes = existing ? entry + '\n\n' + existing : entry;
+  if (notesEl) notesEl.value = newNotes;
+  plannerNotes = newNotes;
+  
+  // Save to localStorage and sync
+  try { localStorage.setItem(notesPageKey(currentNotesPage), newNotes); } catch(e) {}
+  debouncedSync('planner', () => pushPlannerToCloud(plannerKey()), 1000);
+  
+  // Close and confirm
+  closeQuickEntry();
+  toast('Added to today\'s planner notes.');
+}
+
+// Close overlay on backdrop tap
+document.addEventListener('click', (e) => {
+  const overlay = document.getElementById('quick-entry-overlay');
+  if (e.target === overlay) closeQuickEntry();
+});
 
 // ═══════════════════════════════════════
 // UTILITIES
